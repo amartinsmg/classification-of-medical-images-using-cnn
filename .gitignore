@@ -1,0 +1,4 @@
+.vscode
+data
+*.h5
+*.keras
