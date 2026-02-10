@@ -1,5 +1,13 @@
+# Ignore IDE settings
 .vscode
+
+# Inore local shell scripts for automation
+*.sh
+
+# Ignore raw data
 data
+
+# Ignore model files and results
 *.h5
 *.keras
 results
