@@ -14,7 +14,7 @@ if "google.colab" in sys.modules:
     drive.mount("/content/drive")
     BASE_PATH = "/content/drive/MyDrive/classification-of-medical-images-using-cnn/"
 else:
-    BASE_PATH = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 TRAIN_DIR = os.path.join(BASE_PATH, "data", "train")
