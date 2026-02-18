@@ -188,9 +188,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--image-size",
-        type=tuple,
-        default=(224, 224),
-        help="Image size for training. Default is (224, 224).",
+        type=int,
+        nargs=2,
+        default=[224, 224],
+        help="Image size for training. Default is 224 X 224.",
     )
     parser.add_argument(
         "--batch-size",
@@ -212,6 +213,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    args.image_size = tuple(args.image_size)
+
     main(args)
 
 # ======================================
