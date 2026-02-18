@@ -26,6 +26,8 @@ import argparse
 import tensorflow as tf
 import keras
 import json
+import typing
+
 
 # ======================================
 # PATH CONFIGURATION
@@ -69,9 +71,9 @@ def load_datasets(train_dir, val_dir, image_size=(224, 224), batch_size=32, seed
         shuffle=False,
     )
 
-    # ======================================
-    # NORMALIZATION AND DATA AUGMENTATION
-    # ======================================
+    # ===================================================================
+    # NORMALIZATION, DATA AUGMENTATION AND PERFORMANCE OPTIMIZATION
+    # ===================================================================
 
     normalization_layer = keras.layers.Rescaling(1.0 / 255)
 
@@ -147,28 +149,49 @@ def save_results(model, history, model_path, model_weights_path, result_path):
 
 
 # ======================================
-# MAIN FUNCTION
+# TRAINING PIPELINE
 # ======================================
 
 
-def main(args):
+def train_pipeline(
+    base_dir: str,
+    image_size: typing.Tuple[int, int],
+    batch_size: int,
+    epochs: int,
+    seed: int,
+):
     train_dir, val_dir, model_path, model_weights_path, result_path = configure_paths(
-        args.base_dir
+        base_dir
     )
 
     train_data, val_data = load_datasets(
         train_dir,
         val_dir,
-        image_size=args.image_size,
-        batch_size=args.batch_size,
-        seed=args.seed,
+        image_size=image_size,
+        batch_size=batch_size,
+        seed=seed,
     )
 
     model = build_model()
 
-    model, history = train_model(model, train_data, val_data, epochs=args.epochs)
+    model, history = train_model(model, train_data, val_data, epochs=epochs)
 
     save_results(model, history, model_path, model_weights_path, result_path)
+
+
+# ======================================
+# MAIN FUNCTION
+# ======================================
+
+
+def main(args):
+    train_pipeline(
+        base_dir=args.base_dir,
+        image_size=args.image_size,
+        batch_size=args.batch_size,
+        epochs=args.epochs,
+        seed=args.seed,
+    )
 
 
 if __name__ == "__main__":
