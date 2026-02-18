@@ -7,53 +7,30 @@ import tensorflow as tf
 import keras
 import json
 
-BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 parser = argparse.ArgumentParser(
     description="Train a CNN model for medical image classification."
 )
 
 parser.add_argument(
-    "--train_dir",
+    "--base-dir",
     type=str,
-    default=os.path.join(BASE_PATH, "data", "train"),
-    help="Path to the training data directory.",
-)
-parser.add_argument(
-    "--val_dir",
-    type=str,
-    default=os.path.join(BASE_PATH, "data", "val"),
-    help="Path to the validation data directory.",
-)
-parser.add_argument(
-    "--model_path",
-    type=str,
-    default=os.path.join(BASE_PATH, "models", "xray_images.keras"),
-    help="Path to save the trained model.",
-)
-parser.add_argument(
-    "--model_weights_path",
-    type=str,
-    default=os.path.join(BASE_PATH, "models", "xray_images.weights.h5"),
-    help="Path to save the model weights.",
-)
-parser.add_argument(
-    "--result_path",
-    type=str,
-    default=os.path.join(BASE_PATH, "results", "xray_images.json"),
-    help="Path to save the training results.",
+    default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+    help="Base project directory. Default is the parent directory of the script.",
 )
 
 args = parser.parse_args()
 
-TRAIN_DIR = args.train_dir
-VAL_DIR = args.val_dir
-MODEL_PATH = args.model_path
-MODEL_WEIGHTS_PATH = args.model_weights_path
-RESULT_PATH = args.result_path
+BASE_PATH = args.base_dir
+TRAIN_DIR = os.path.join(BASE_PATH, "data", "train")
+VAL_DIR = os.path.join(BASE_PATH, "data", "val")
+MODEL_PATH = os.path.join(BASE_PATH, "models", "xray_images.keras")
+MODEL_WEIGHTS_PATH = os.path.join(BASE_PATH, "models", "xray_images.weights.h5")
+RESULT_PATH = os.path.join(BASE_PATH, "results", "xray_images.json")
+
 
 os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+os.makedirs(os.path.dirname(MODEL_WEIGHTS_PATH), exist_ok=True)
 os.makedirs(os.path.dirname(RESULT_PATH), exist_ok=True)
 
 
