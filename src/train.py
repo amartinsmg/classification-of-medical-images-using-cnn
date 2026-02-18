@@ -8,7 +8,7 @@ Exemple task: Classify chest X-ray images as normal or pneumonia.
 
 Expected directory structure:
 
-project/
+base/
 ├── data/
 │   ├── train/
 │   │   ├── NORMAL/    
@@ -32,7 +32,7 @@ import json
 # ======================================
 
 parser = argparse.ArgumentParser(
-    description="Train a CNN model for medical image classification."
+    description="Train a CNN model for radiological image classification."
 )
 
 parser.add_argument(
