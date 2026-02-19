@@ -72,9 +72,7 @@ def load_datasets(train_dir, val_dir, image_size=(224, 224), batch_size=32, seed
         shuffle=False,
     )
 
-    # ===================================================================
     # NORMALIZATION, DATA AUGMENTATION AND PERFORMANCE OPTIMIZATION
-    # ===================================================================
 
     normalization_layer = keras.layers.Rescaling(1.0 / 255)
 
@@ -236,9 +234,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # ======================================
+
     # ARGUMENT PARSING
-    # ======================================
 
     parser = argparse.ArgumentParser(
         description="Train a CNN model for radiological image classification."
@@ -281,6 +278,7 @@ if __name__ == "__main__":
     args.image_size = tuple(args.image_size)
 
     main(args)
+
 
 # ======================================
 # ACADEMIC DISCLAIMER
