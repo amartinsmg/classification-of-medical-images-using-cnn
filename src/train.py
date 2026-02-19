@@ -116,7 +116,15 @@ def build_model():
     outputs = keras.layers.Dense(1, activation="sigmoid")(x)
     model = keras.models.Model(inputs, outputs)
 
-    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+    model.compile(
+        optimizer="adam",
+        loss="binary_crossentropy",
+        metrics=[
+            keras.metrics.BinaryAccuracy(name="accuracy"),
+            keras.metrics.Recall(name="recall"),
+            keras.metrics.Precision(name="precision"),
+        ],
+    )
 
     return model
 
@@ -200,7 +208,13 @@ def train_pipeline(
     }
 
     save_results(
-        model, history, config_dict, model_path, model_weights_path, result_path, config_path
+        model,
+        history,
+        config_dict,
+        model_path,
+        model_weights_path,
+        result_path,
+        config_path,
     )
 
     print("Training completed. Model and results saved.")
