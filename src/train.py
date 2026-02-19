@@ -40,11 +40,12 @@ def configure_paths(base_path):
     model_path = os.path.join(base_path, "models", "xray_images.keras")
     model_weights_path = os.path.join(base_path, "models", "xray_images.weights.h5")
     result_path = os.path.join(base_path, "results", "xray_images.json")
+    config_path = os.path.join(base_path, "results", "config.json")
 
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
     os.makedirs(os.path.dirname(result_path), exist_ok=True)
 
-    return train_dir, val_dir, model_path, model_weights_path, result_path
+    return train_dir, val_dir, model_path, model_weights_path, result_path, config_path
 
 
 # ======================================
@@ -137,7 +138,15 @@ def train_model(model, train_data, val_data, epochs=10):
 # ======================================
 
 
-def save_results(model, history, model_path, model_weights_path, result_path):
+def save_results(
+    model,
+    history,
+    config_dict,
+    model_path,
+    model_weights_path,
+    result_path,
+    config_path,
+):
     model.save(model_path)
 
     model.save_weights(model_weights_path)
@@ -146,6 +155,9 @@ def save_results(model, history, model_path, model_weights_path, result_path):
 
     with open(result_path, "w") as f:
         json.dump(history_dict, f)
+
+    with open(config_path, "w") as f:
+        json.dump(config_dict, f)
 
 
 # ======================================
@@ -160,8 +172,8 @@ def train_pipeline(
     epochs: int,
     seed: int,
 ):
-    train_dir, val_dir, model_path, model_weights_path, result_path = configure_paths(
-        base_dir
+    train_dir, val_dir, model_path, model_weights_path, result_path, config_path = (
+        configure_paths(base_dir)
     )
 
     train_data, val_data = load_datasets(
@@ -176,7 +188,22 @@ def train_pipeline(
 
     model, history = train_model(model, train_data, val_data, epochs=epochs)
 
-    save_results(model, history, model_path, model_weights_path, result_path)
+    config_dict = {
+        "image_size": image_size,
+        "batch_size": batch_size,
+        "epochs": epochs,
+        "seed": seed,
+        "base_model": "ResNet50",
+        "weights": "imagenet",
+        "optimizer": "adam",
+        "preprocessing": "rescaling, data augmentation",
+    }
+
+    save_results(
+        model, history, config_dict, model_path, model_weights_path, result_path, config_path
+    )
+
+    print("Training completed. Model and results saved.")
 
 
 # ======================================
