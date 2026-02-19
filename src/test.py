@@ -1,11 +1,34 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+"""
+TRANSFERLEARNING WITH RESNET50 FOR RADIOLOGICAL IMAGE CLASSIFICATION
+
+Exemple task: Classify chest X-ray images as normal or pneumonia.
+
+Expected directory structure:
+
+base/
+├── data/
+│   ├── train/
+│   ├── val/
+│   └── test/
+│       ├── NORMAL/
+│       └── PNEUMONIA/
+├── models/
+└── results/
+
+"""
+
 import os
 import argparse
 import tensorflow as tf
 import keras
 import json
+
+# ======================================
+# PATH CONFIGURATION
+# ======================================
 
 
 def configure_paths(base_path):
@@ -18,6 +41,11 @@ def configure_paths(base_path):
     return test_dir, model_path, result_path
 
 
+# ======================================
+# DATASET LOADING
+# ======================================
+
+
 def load_test_data(test_dir, image_size=(224, 224), batch_size=32):
     test_data = keras.utils.image_dataset_from_directory(
         test_dir,
@@ -26,6 +54,8 @@ def load_test_data(test_dir, image_size=(224, 224), batch_size=32):
         label_mode="binary",
         shuffle=False,
     )
+
+    # NORMALIZATION AND PERFORMANCE OPTIMIZATION
 
     normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
 
@@ -36,6 +66,11 @@ def load_test_data(test_dir, image_size=(224, 224), batch_size=32):
     return test_data
 
 
+# ======================================
+# MODEL TESTING
+# ======================================
+
+
 def test_pipeline(base_dir, image_size=(224, 224), batch_size=32):
     test_dir, model_path, result_path = configure_paths(base_dir)
 
@@ -43,13 +78,18 @@ def test_pipeline(base_dir, image_size=(224, 224), batch_size=32):
 
     model = keras.models.load_model(model_path)
 
-    results = model.evaluate(test_data)
-
-    metrics_dict = dict(zip(model.metrics_names, results))
+    results = model.evaluate(test_data, return_dict=True)
 
     with open(result_path, "w") as f:
-        json.dump(metrics_dict, f)
-    print(metrics_dict)
+        json.dump(results, f, indent=4)
+    print(results)
+
+    return results
+
+
+# ======================================
+# MAIN FUNCTION
+# ======================================
 
 
 def main(args):
@@ -61,6 +101,8 @@ def main(args):
 
 
 if __name__ == "__main__":
+    
+    # ARGUMENT PARSING
 
     parser = argparse.ArgumentParser(
         description="Test a CNN model for radiological image classification."
