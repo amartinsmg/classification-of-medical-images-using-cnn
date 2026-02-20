@@ -24,6 +24,7 @@ import os
 import argparse
 import tensorflow as tf
 import keras
+import sklearn
 import json
 
 # ======================================
@@ -67,7 +68,7 @@ def load_test_data(test_dir, image_size=(224, 224), batch_size=32):
 
 
 # ======================================
-# MODEL TESTING
+# MODEL TESTING AND EVALUATION
 # ======================================
 
 
@@ -79,12 +80,37 @@ def test_pipeline(base_dir, image_size=(224, 224), batch_size=32):
     model = keras.models.load_model(model_path)
 
     results = model.evaluate(test_data, return_dict=True)
+    y_true = []
+    y_pred = []
+
+    for images, labels in test_data:
+        predictions = model.predict(images)
+        predictions = (predictions > 0.5).astype(int)
+
+        y_true.extend(labels.numpy())
+        y_pred.extend(predictions.flatten())
+
+    confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
+
+    TN, FP, FN, TP = confusion_matrix.ravel().tolist()
+
+    results["confusion_matrix"] = {
+        "TN": int(TN),
+        "FP": int(FP),
+        "FN": int(FN),
+        "TP": int(TP),
+    }
+
+    results["f1_score"] = sklearn.metrics.f1_score(y_true, y_pred)
+
+    results["specificity"] = TN / (TN + FP)
 
     with open(result_path, "w") as f:
         json.dump(results, f, indent=4)
-    print(results)
 
-    return results
+    print(json.dumps(results, indent=4))
+
+    return y_true, y_pred, results
 
 
 # ======================================
@@ -101,7 +127,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    
+
     # ARGUMENT PARSING
 
     parser = argparse.ArgumentParser(
