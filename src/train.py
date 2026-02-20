@@ -53,7 +53,15 @@ def configure_paths(base_path):
 # ======================================
 
 
-def load_datasets(train_dir, val_dir, image_size=(224, 224), batch_size=32, seed=42):
+def load_datasets(
+    train_dir,
+    val_dir,
+    image_size=(224, 224),
+    batch_size=32,
+    seed=42,
+    preproccess_mode="rescaling",
+    use_data_aug=True,
+):
 
     train_data = keras.utils.image_dataset_from_directory(
         train_dir,
@@ -72,22 +80,32 @@ def load_datasets(train_dir, val_dir, image_size=(224, 224), batch_size=32, seed
         shuffle=False,
     )
 
-    # NORMALIZATION, DATA AUGMENTATION AND PERFORMANCE OPTIMIZATION
+    normalization_layer = None
 
-    normalization_layer = keras.layers.Rescaling(1.0 / 255)
+    if preproccess_mode == "rescaling":
+        normalization_layer = keras.layers.Rescaling(1.0 / 255)
+    elif preproccess_mode == "resnet":
+        normalization_layer = keras.applications.resnet50.preprocess_input
+    else:
+        raise ValueError(
+            f"Invalid preprocessing mode: {preproccess_mode}. Choose 'rescaling' or 'resnet'."
+        )
 
     train_data = train_data.map(lambda x, y: (normalization_layer(x), y))
     val_data = val_data.map(lambda x, y: (normalization_layer(x), y))
 
-    data_augmentation = keras.Sequential(
-        [
-            keras.layers.RandomFlip("horizontal"),
-            keras.layers.RandomRotation(0.05),
-            keras.layers.RandomZoom(0.1),
-        ]
-    )
+    if use_data_aug:
+        data_augmentation = keras.Sequential(
+            [
+                keras.layers.RandomFlip("horizontal"),
+                keras.layers.RandomRotation(0.05),
+                keras.layers.RandomZoom(0.1),
+            ]
+        )
 
-    train_data = train_data.map(lambda x, y: (data_augmentation(x, training=True), y))
+        train_data = train_data.map(
+            lambda x, y: (data_augmentation(x, training=True), y)
+        )
 
     train_data = train_data.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
     val_data = val_data.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -160,10 +178,10 @@ def save_results(
     history_dict = history.history
 
     with open(result_path, "w") as f:
-        json.dump(history_dict, f)
+        json.dump(history_dict, f, indent=4)
 
     with open(config_path, "w") as f:
-        json.dump(config_dict, f)
+        json.dump(config_dict, f, indent=4)
 
 
 # ======================================
@@ -173,10 +191,12 @@ def save_results(
 
 def train_pipeline(
     base_dir: str,
-    image_size: typing.Tuple[int, int],
-    batch_size: int,
-    epochs: int,
-    seed: int,
+    image_size: typing.Tuple[int, int] = (224, 224),
+    batch_size: int = 32,
+    epochs: int = 10,
+    seed: int = 42,
+    preproccess_mode: str = "rescaling",
+    use_data_aug: bool = True,
 ):
     train_dir, val_dir, model_path, model_weights_path, result_path, config_path = (
         configure_paths(base_dir)
@@ -188,6 +208,8 @@ def train_pipeline(
         image_size=image_size,
         batch_size=batch_size,
         seed=seed,
+        preproccess_mode=preproccess_mode,
+        use_data_aug=use_data_aug,
     )
 
     model = build_model()
@@ -202,7 +224,8 @@ def train_pipeline(
         "base_model": "ResNet50",
         "weights": "imagenet",
         "optimizer": "adam",
-        "preprocessing": "rescaling, data augmentation",
+        "preprocessing": preproccess_mode,
+        "data_augmentation": use_data_aug,
     }
 
     save_results(
@@ -230,6 +253,8 @@ def main(args):
         batch_size=args.batch_size,
         epochs=args.epochs,
         seed=args.seed,
+        preproccess_mode=args.preproccess_mode,
+        use_data_aug=args.use_data_aug,
     )
 
 
@@ -271,6 +296,18 @@ if __name__ == "__main__":
         type=int,
         default=10,
         help="Number of training epochs. Default is 10.",
+    )
+    parser.add_argument(
+        "--preproccess-mode",
+        type=str,
+        default="rescaling",
+        help="Preprocessing mode for training data. Default is 'rescaling'.",
+    )
+    parser.add_argument(
+        "--use-data-aug",
+        type=bool,
+        default=True,
+        help="Whether to use data augmentation during training. Default is True.",
     )
 
     args = parser.parse_args()
