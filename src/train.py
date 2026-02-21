@@ -160,10 +160,10 @@ def save_results(
     history_dict = history.history
 
     with open(result_path, "w") as f:
-        json.dump(history_dict, f)
+        json.dump(history_dict, f, indent=4)
 
     with open(config_path, "w") as f:
-        json.dump(config_dict, f)
+        json.dump(config_dict, f, indent=4)
 
 
 # ======================================
@@ -195,14 +195,14 @@ def train_pipeline(
     model, history = train_model(model, train_data, val_data, epochs=epochs)
 
     config_dict = {
-        "image_size": image_size,
-        "batch_size": batch_size,
-        "epochs": epochs,
-        "seed": seed,
         "base_model": "ResNet50",
         "weights": "imagenet",
         "optimizer": "adam",
         "preprocessing": "rescaling, data augmentation",
+        "image_size": image_size,
+        "batch_size": batch_size,
+        "epochs": epochs,
+        "seed": seed,
     }
 
     save_results(
@@ -224,13 +224,7 @@ def train_pipeline(
 
 
 def main(args):
-    train_pipeline(
-        base_dir=args.base_dir,
-        image_size=args.image_size,
-        batch_size=args.batch_size,
-        epochs=args.epochs,
-        seed=args.seed,
-    )
+    train_pipeline(base_dir=args.base_dir)
 
 
 if __name__ == "__main__":
@@ -245,37 +239,10 @@ if __name__ == "__main__":
         "--base-dir",
         type=str,
         default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
-        help="Base project directory. Default is the parent directory of the script.",
-    )
-    parser.add_argument(
-        "--image-size",
-        type=int,
-        nargs=2,
-        default=[224, 224],
-        help="Image size for training. Default is 224 X 224.",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=32,
-        help="Batch size for training. Default is 32.",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed for dataset shuffling. Default is 42.",
-    )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=10,
-        help="Number of training epochs. Default is 10.",
+        help="Base project directory. Default is the parent directory of the script directory.",
     )
 
     args = parser.parse_args()
-
-    args.image_size = tuple(args.image_size)
 
     main(args)
 
