@@ -34,18 +34,25 @@ import typing
 # ======================================
 
 
-def configure_paths(base_path):
+def configure_paths(base_path: str, experiment_name: str = "", run_id: int = 1):
+    if len(experiment_name) == 0:
+        RESULT_DIR = RESULT_DIR = os.path.join(base_path, "results")
+    else:
+        RESULT_DIR = os.path.join(
+            base_path, "results", experiment_name, f"run{run_id:d2}"
+        )
+
     train_dir = os.path.join(base_path, "data", "train")
     val_dir = os.path.join(base_path, "data", "val")
-    model_path = os.path.join(base_path, "models", "xray_images.keras")
-    model_weights_path = os.path.join(base_path, "models", "xray_images.weights.h5")
-    result_path = os.path.join(base_path, "results", "xray_images.json")
-    config_path = os.path.join(base_path, "results", "config.json")
+    model_path = os.path.join(base_path, "models", "model.keras")
+    model_weights_path = os.path.join(base_path, "models", "model.weights.h5")
+    history_path = os.path.join(RESULT_DIR, "history.json")
+    config_path = os.path.join(RESULT_DIR, "config.json")
 
-    os.makedirs(os.path.dirname(model_path), exist_ok=True)
-    os.makedirs(os.path.dirname(result_path), exist_ok=True)
+    os.makedirs(RESULT_DIR, exist_ok=True)
+    os.makedirs(os.path.dirname(history_path), exist_ok=True)
 
-    return train_dir, val_dir, model_path, model_weights_path, result_path, config_path
+    return train_dir, val_dir, model_path, model_weights_path, history_path, config_path
 
 
 # ======================================
@@ -53,7 +60,13 @@ def configure_paths(base_path):
 # ======================================
 
 
-def load_datasets(train_dir, val_dir, image_size=(224, 224), batch_size=32, seed=42):
+def load_datasets(
+    train_dir: str,
+    val_dir: str,
+    image_size: typing.Tuple[int, int] = (224, 224),
+    batch_size: int = 32,
+    seed: int = 42,
+):
 
     train_data = keras.utils.image_dataset_from_directory(
         train_dir,
@@ -100,14 +113,14 @@ def load_datasets(train_dir, val_dir, image_size=(224, 224), batch_size=32, seed
 # ======================================
 
 
-def build_model():
+def build_model(input_shape: typing.Tuple[int, int, int] = (224, 224, 3)):
 
     base_model = keras.applications.ResNet50(
-        weights="imagenet", include_top=False, input_shape=(224, 224, 3)
+        weights="imagenet", include_top=False, input_shape=input_shape
     )
     base_model.trainable = False
 
-    inputs = keras.Input(shape=(224, 224, 3))
+    inputs = keras.Input(shape=input_shape)
     x = base_model(inputs, training=False)
     x = keras.layers.GlobalAveragePooling2D()(x)
     x = keras.layers.Dense(128, activation="relu")(x)
@@ -132,7 +145,7 @@ def build_model():
 # ======================================
 
 
-def train_model(model, train_data, val_data, epochs=10):
+def train_model(model: keras.models.Model, train_data, val_data, epochs: int = 10):
 
     history = model.fit(train_data, validation_data=val_data, epochs=epochs)
 
@@ -145,13 +158,13 @@ def train_model(model, train_data, val_data, epochs=10):
 
 
 def save_results(
-    model,
-    history,
-    config_dict,
-    model_path,
-    model_weights_path,
-    result_path,
-    config_path,
+    model: keras.models.Model,
+    history: keras.callbacks.History,
+    config_dict: dict,
+    model_path: str,
+    model_weights_path: str,
+    history_path: str,
+    config_path: str,
 ):
     model.save(model_path)
 
@@ -159,7 +172,7 @@ def save_results(
 
     history_dict = history.history
 
-    with open(result_path, "w") as f:
+    with open(history_path, "w") as f:
         json.dump(history_dict, f, indent=4)
 
     with open(config_path, "w") as f:
@@ -173,13 +186,15 @@ def save_results(
 
 def train_pipeline(
     base_dir: str,
-    image_size: typing.Tuple[int, int],
-    batch_size: int,
-    epochs: int,
-    seed: int,
+    expereriment_name: str = "",
+    run_id: int = 1,
+    image_size: typing.Tuple[int, int] = (224, 224),
+    batch_size: int = 32,
+    epochs: int = 10,
+    seed: int = 42,
 ):
-    train_dir, val_dir, model_path, model_weights_path, result_path, config_path = (
-        configure_paths(base_dir)
+    train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
+        configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
     )
 
     train_data, val_data = load_datasets(
@@ -190,7 +205,9 @@ def train_pipeline(
         seed=seed,
     )
 
-    model = build_model()
+    input_shape = image_size + (3,)
+
+    model = build_model(input_shape=input_shape)
 
     model, history = train_model(model, train_data, val_data, epochs=epochs)
 
@@ -211,7 +228,7 @@ def train_pipeline(
         config_dict,
         model_path,
         model_weights_path,
-        result_path,
+        history_path,
         config_path,
     )
 
