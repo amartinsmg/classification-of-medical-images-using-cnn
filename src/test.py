@@ -24,6 +24,7 @@ import os
 import argparse
 import tensorflow as tf
 import keras
+import typing
 import sklearn
 import json
 
@@ -32,14 +33,20 @@ import json
 # ======================================
 
 
-def configure_paths(base_path):
+def configure_paths(base_path: str, experiment_name: str = "", run_id: int = 1):
     test_dir = os.path.join(base_path, "data", "test")
-    model_path = os.path.join(base_path, "models", "xray_images.keras")
-    result_path = os.path.join(base_path, "results", "xray_test_results.json")
+    model_path = os.path.join(base_path, "models", "model.keras")
+    metrics_path = ""
+    if len(experiment_name) == 0:
+        metrics_path = os.path.join(base_path, "results", "metrics.json")
+    else:
+        metrics_path = os.path.join(
+            base_path, "results", experiment_name, f"run{run_id:d2}", "metrics.json"
+        )
 
-    os.makedirs(os.path.dirname(result_path), exist_ok=True)
+    os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
 
-    return test_dir, model_path, result_path
+    return test_dir, model_path, metrics_path
 
 
 # ======================================
@@ -47,7 +54,9 @@ def configure_paths(base_path):
 # ======================================
 
 
-def load_test_data(test_dir, image_size=(224, 224), batch_size=32):
+def load_test_data(
+    test_dir: str, image_size: typing.Tuple[int, int] = (224, 224), batch_size: int = 32
+):
     test_data = keras.utils.image_dataset_from_directory(
         test_dir,
         image_size=image_size,
@@ -72,14 +81,22 @@ def load_test_data(test_dir, image_size=(224, 224), batch_size=32):
 # ======================================
 
 
-def test_pipeline(base_dir, image_size=(224, 224), batch_size=32):
-    test_dir, model_path, result_path = configure_paths(base_dir)
+def test_pipeline(
+    base_dir: str,
+    experiment_name: str = "",
+    run_id: int = 1,
+    image_size: typing.Tuple[int, int] = (224, 224),
+    batch_size: int = 32,
+):
+    test_dir, model_path, metrics_path = configure_paths(
+        base_dir, experiment_name=experiment_name, run_id=run_id
+    )
 
     test_data = load_test_data(test_dir, image_size=image_size, batch_size=batch_size)
 
     model = keras.models.load_model(model_path)
 
-    results = model.evaluate(test_data, return_dict=True)
+    metrics = model.evaluate(test_data, return_dict=True)
     y_true = []
     y_pred = []
 
@@ -94,23 +111,23 @@ def test_pipeline(base_dir, image_size=(224, 224), batch_size=32):
 
     TN, FP, FN, TP = confusion_matrix.ravel().tolist()
 
-    results["confusion_matrix"] = {
+    metrics["confusion_matrix"] = {
         "TN": int(TN),
         "FP": int(FP),
         "FN": int(FN),
         "TP": int(TP),
     }
 
-    results["f1_score"] = sklearn.metrics.f1_score(y_true, y_pred)
+    metrics["f1_score"] = sklearn.metrics.f1_score(y_true, y_pred)
 
-    results["specificity"] = TN / (TN + FP)
+    metrics["specificity"] = TN / (TN + FP)
 
-    with open(result_path, "w") as f:
-        json.dump(results, f, indent=4)
+    with open(metrics_path, "w") as f:
+        json.dump(metrics, f, indent=4)
 
-    print(json.dumps(results, indent=4))
+    print(json.dumps(metrics, indent=4))
 
-    return y_true, y_pred, results
+    return y_true, y_pred, metrics
 
 
 # ======================================
@@ -121,8 +138,6 @@ def test_pipeline(base_dir, image_size=(224, 224), batch_size=32):
 def main(args):
     test_pipeline(
         base_dir=args.base_dir,
-        image_size=args.image_size,
-        batch_size=args.batch_size,
     )
 
 
@@ -140,22 +155,7 @@ if __name__ == "__main__":
         default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
         help="Base project directory. Default is the parent directory of the script.",
     )
-    parser.add_argument(
-        "--image-size",
-        type=int,
-        nargs=2,
-        default=[224, 224],
-        help="Image size for testing. Default is 224 X 224.",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=32,
-        help="Batch size for testing. Default is 32.",
-    )
 
     args = parser.parse_args()
-
-    args.image_size = tuple(args.image_size)
 
     main(args)
