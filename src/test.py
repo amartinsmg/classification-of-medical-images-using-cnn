@@ -123,22 +123,15 @@ def test_pipeline(
 
     model = keras.models.load_model(model_path)
 
-    y_true = []
-    y_scores = []
+    y_true = np.concatenate([y for x, y in test_data], axis=0).flatten()
 
-    for images, labels in test_data:
-        predictions = model.predict(images)
-        y_true.extend(labels.numpy().flatten())
-        y_scores.extend(predictions.flatten())
-
-    y_true = np.array(y_true)
-    y_scores = np.array(y_scores)
+    y_scores = model.predict(test_data).flatten()
 
     y_pred = (y_scores > threshold).astype(int)
 
     confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
 
-    TN, FP, FN, TP = confusion_matrix.ravel().tolist()
+    TN, FP, FN, TP = confusion_matrix.ravel()
 
     metrics = {
         "accuracy": sklearn.metrics.accuracy_score(y_true, y_pred),
@@ -146,14 +139,13 @@ def test_pipeline(
         "recall": sklearn.metrics.recall_score(y_true, y_pred),
         "f1_score": sklearn.metrics.f1_score(y_true, y_pred),
         "specificity": TN / (TN + FP) if (TN + TP) > 0 else 0,
-        "auc-roc": sklearn.metrics.roc_auc_score(y_true, y_scores)
-    }
-
-    metrics["confusion_matrix"] = {
-        "TN": int(TN),
-        "FP": int(FP),
-        "FN": int(FN),
-        "TP": int(TP),
+        "auc-roc": sklearn.metrics.roc_auc_score(y_true, y_scores),
+        "confusion_matrix": {
+            "TN": int(TN),
+            "FP": int(FP),
+            "FN": int(FN),
+            "TP": int(TP),
+        },
     }
 
     print(json.dumps(metrics, indent=4))
