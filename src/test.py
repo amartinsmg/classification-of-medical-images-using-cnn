@@ -21,6 +21,7 @@ base/
 """
 
 import os
+import sys
 import argparse
 import tensorflow as tf
 import keras
@@ -122,8 +123,6 @@ def test_pipeline(
 
     model = keras.models.load_model(model_path)
 
-    metrics = model.evaluate(test_data, return_dict=True)
-
     y_true = []
     y_scores = []
 
@@ -141,20 +140,21 @@ def test_pipeline(
 
     TN, FP, FN, TP = confusion_matrix.ravel().tolist()
 
+    metrics = {
+        "accuracy": sklearn.metrics.accuracy_score(y_true, y_pred),
+        "precision": sklearn.metrics.precision_score(y_true, y_pred),
+        "recall": sklearn.metrics.recall_score(y_true, y_pred),
+        "f1_score": sklearn.metrics.f1_score(y_true, y_pred),
+        "specificity": TN / (TN + FP) if (TN + TP) > 0 else 0,
+        "auc-roc": sklearn.metrics.roc_auc_score(y_true, y_scores)
+    }
+
     metrics["confusion_matrix"] = {
         "TN": int(TN),
         "FP": int(FP),
         "FN": int(FN),
         "TP": int(TP),
     }
-
-    metrics["precision"] = sklearn.metrics.precision_score(y_true, y_pred)
-
-    metrics["recall"] = sklearn.metrics.recall_score(y_true, y_pred)
-
-    metrics["f1_score"] = sklearn.metrics.f1_score(y_true, y_pred)
-
-    metrics["specificity"] = TN / (TN + FP)
 
     print(json.dumps(metrics, indent=4))
 
