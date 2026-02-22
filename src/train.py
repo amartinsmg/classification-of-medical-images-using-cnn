@@ -243,7 +243,7 @@ def train_pipeline(
         config_dict["base_model"] = "EfficientNetB0"
 
     if data_augmentation:
-        config_dict["preprocessing"].extend("data augmentation")
+        config_dict["preprocessing"].append("data augmentation")
 
     train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
         configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
