@@ -2,7 +2,7 @@
 # coding: utf-8
 
 """
-TRANSFERLEARNING WITH RESNET50 FOR RADIOLOGICAL IMAGE CLASSIFICATION
+TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
 Exemple task: Classify chest X-ray images as normal or pneumonia.
 
@@ -34,18 +34,18 @@ import typing
 # ======================================
 
 
-def configure_paths(base_path: str, experiment_name: str = "", run_id: int = 1):
+def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     if len(experiment_name) == 0:
-        RESULT_DIR = RESULT_DIR = os.path.join(base_path, "results")
+        RESULT_DIR = RESULT_DIR = os.path.join(base_dir, "results")
     else:
         RESULT_DIR = os.path.join(
-            base_path, "results", experiment_name, f"run{run_id:d2}"
+            base_dir, "results", experiment_name, f"run{run_id:d2}"
         )
 
-    train_dir = os.path.join(base_path, "data", "train")
-    val_dir = os.path.join(base_path, "data", "val")
-    model_path = os.path.join(base_path, "models", "model.keras")
-    model_weights_path = os.path.join(base_path, "models", "model.weights.h5")
+    train_dir = os.path.join(base_dir, "data", "train")
+    val_dir = os.path.join(base_dir, "data", "val")
+    model_path = os.path.join(base_dir, "models", "model.keras")
+    model_weights_path = os.path.join(base_dir, "models", "model.weights.h5")
     history_path = os.path.join(RESULT_DIR, "history.json")
     config_path = os.path.join(RESULT_DIR, "config.json")
 
@@ -63,10 +63,15 @@ def configure_paths(base_path: str, experiment_name: str = "", run_id: int = 1):
 def load_datasets(
     train_dir: str,
     val_dir: str,
+    normalization: str = "rescaling",
+    base_model: str = "resnet",
+    data_aug: bool = True,
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
     seed: int = 42,
 ):
+
+    keras.utils.set_random_seed(seed)
 
     train_data = keras.utils.image_dataset_from_directory(
         train_dir,
@@ -74,7 +79,6 @@ def load_datasets(
         batch_size=batch_size,
         label_mode="binary",
         shuffle=True,
-        seed=seed,
     )
 
     val_data = keras.utils.image_dataset_from_directory(
@@ -85,22 +89,34 @@ def load_datasets(
         shuffle=False,
     )
 
-    # NORMALIZATION, DATA AUGMENTATION AND PERFORMANCE OPTIMIZATION
+    # NORMALIZATION
 
-    normalization_layer = keras.layers.Rescaling(1.0 / 255)
+    if normalization == "rescaling":
+        normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
+    elif normalization == "preproccess_input":
+        if base_model == "resnet":
+            normalization_layer = keras.applications.resnet.preprocess_input
+        elif base_model == "densenet":
+            normalization_layer = keras.applications.densenet.preprocess_input
+        elif base_model == "efficientnet":
+            normalization_layer = keras.applications.efficientnet.preprocess_input
 
     train_data = train_data.map(lambda x, y: (normalization_layer(x), y))
     val_data = val_data.map(lambda x, y: (normalization_layer(x), y))
 
-    data_augmentation = keras.Sequential(
-        [
-            keras.layers.RandomFlip("horizontal"),
-            keras.layers.RandomRotation(0.05),
-            keras.layers.RandomZoom(0.1),
-        ]
-    )
+    # DATA AUGMENTATION
 
-    train_data = train_data.map(lambda x, y: (data_augmentation(x, training=True), y))
+    if data_aug:
+        data_augmentation = keras.Sequential(
+            [
+                keras.layers.RandomFlip("horizontal"),
+                keras.layers.RandomRotation(0.05),
+                keras.layers.RandomZoom(0.1),
+            ]
+        )
+        train_data = train_data.map(lambda x, y: (data_augmentation(x, training=True), y))
+
+    # PERFORMANCE OPTMIZATION
 
     train_data = train_data.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
     val_data = val_data.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -113,11 +129,24 @@ def load_datasets(
 # ======================================
 
 
-def build_model(input_shape: typing.Tuple[int, int, int] = (224, 224, 3)):
+def build_model(
+    base_model_arch: str = "resnet",
+    input_shape: typing.Tuple[int, int, int] = (224, 224, 3),
+):
+    base_model = None
+    if base_model_arch == "resnet":
+        base_model = keras.applications.ResNet50(
+            weights="imagenet", include_top=False, input_shape=input_shape
+        )
+    elif base_model_arch == "densenet":
+        base_model = keras.applications.DenseNet121(
+            weights="imagenet", include_top=False, input_shape=input_shape
+        )
+    elif base_model_arch == "efficientnet":
+        base_model = keras.applications.EfficientNetB0(
+            weights="imagenet", include_top=False, input_shape=input_shape
+        )
 
-    base_model = keras.applications.ResNet50(
-        weights="imagenet", include_top=False, input_shape=input_shape
-    )
     base_model.trainable = False
 
     inputs = keras.Input(shape=input_shape)
@@ -132,8 +161,7 @@ def build_model(input_shape: typing.Tuple[int, int, int] = (224, 224, 3)):
         loss="binary_crossentropy",
         metrics=[
             keras.metrics.BinaryAccuracy(name="accuracy"),
-            keras.metrics.Recall(name="recall"),
-            keras.metrics.Precision(name="precision"),
+            keras.metrics.AUC(name="AUC"),
         ],
     )
 
@@ -188,11 +216,35 @@ def train_pipeline(
     base_dir: str,
     expereriment_name: str = "",
     run_id: int = 1,
+    base_model: str = "resnet",
+    normalization: str = "rescaling",
+    data_augmentation: bool = True,
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
     epochs: int = 10,
     seed: int = 42,
 ):
+    config_dict = {
+        "base_model": "",
+        "weights": "imagenet",
+        "optimizer": "adam",
+        "preprocessing": [normalization],
+        "image_size": image_size,
+        "batch_size": batch_size,
+        "epochs": epochs,
+        "seed": seed,
+    }
+
+    if base_model == "resnet":
+        config_dict["base_model"] = "ResNet50"
+    elif base_model == "densenet":
+        config_dict["base_model"] = "DenseNet121"
+    elif base_model == "efficientnet":
+        config_dict["base_model"] = "EfficientNetB0"
+
+    if data_augmentation:
+        config_dict["preprocessing"].extend("data augmentation")
+
     train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
         configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
     )
@@ -200,6 +252,9 @@ def train_pipeline(
     train_data, val_data = load_datasets(
         train_dir,
         val_dir,
+        normalization=normalization,
+        base_model=base_model,
+        data_aug=data_augmentation,
         image_size=image_size,
         batch_size=batch_size,
         seed=seed,
@@ -207,20 +262,9 @@ def train_pipeline(
 
     input_shape = image_size + (3,)
 
-    model = build_model(input_shape=input_shape)
+    model = build_model(base_model_arch=base_model, input_shape=input_shape)
 
     model, history = train_model(model, train_data, val_data, epochs=epochs)
-
-    config_dict = {
-        "base_model": "ResNet50",
-        "weights": "imagenet",
-        "optimizer": "adam",
-        "preprocessing": "rescaling, data augmentation",
-        "image_size": image_size,
-        "batch_size": batch_size,
-        "epochs": epochs,
-        "seed": seed,
-    }
 
     save_results(
         model,
