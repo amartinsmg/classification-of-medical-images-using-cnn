@@ -25,6 +25,7 @@ import argparse
 import tensorflow as tf
 import keras
 import typing
+import numpy as np
 import sklearn
 import json
 
@@ -105,6 +106,7 @@ def test_pipeline(
     base_model: str = "resnet",
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
+    threshold: float = 0.5,
 ):
     test_dir, model_path, metrics_path = configure_paths(
         base_dir, experiment_name=experiment_name, run_id=run_id
@@ -121,15 +123,19 @@ def test_pipeline(
     model = keras.models.load_model(model_path)
 
     metrics = model.evaluate(test_data, return_dict=True)
+
     y_true = []
-    y_pred = []
+    y_scores = []
 
     for images, labels in test_data:
         predictions = model.predict(images)
-        predictions = (predictions > 0.5).astype(int)
+        y_true.extend(labels.numpy().flatten())
+        y_scores.extend(predictions.flatten())
 
-        y_true.extend(labels.numpy())
-        y_pred.extend(predictions.flatten())
+    y_true = np.array(y_true)
+    y_scores = np.array(y_scores)
+
+    y_pred = (y_scores > threshold).astype(int)
 
     confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
 
@@ -141,7 +147,7 @@ def test_pipeline(
         "FN": int(FN),
         "TP": int(TP),
     }
-    
+
     metrics["precision"] = sklearn.metrics.precision_score(y_true, y_pred)
 
     metrics["recall"] = sklearn.metrics.recall_score(y_true, y_pred)
@@ -150,10 +156,14 @@ def test_pipeline(
 
     metrics["specificity"] = TN / (TN + FP)
 
+    print(json.dumps(metrics, indent=4))
+
+    fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
+
+    metrics["roc-curve"] = {"fpr": fpr.tolist(), "tpr": tpr.tolist()}
+
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=4)
-
-    print(json.dumps(metrics, indent=4))
 
     return y_true, y_pred, metrics
 
