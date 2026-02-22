@@ -2,7 +2,7 @@
 # coding: utf-8
 
 """
-TRANSFERLEARNING WITH RESNET50 FOR RADIOLOGICAL IMAGE CLASSIFICATION
+TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
 Exemple task: Classify chest X-ray images as normal or pneumonia.
 
@@ -33,15 +33,15 @@ import json
 # ======================================
 
 
-def configure_paths(base_path: str, experiment_name: str = "", run_id: int = 1):
-    test_dir = os.path.join(base_path, "data", "test")
-    model_path = os.path.join(base_path, "models", "model.keras")
+def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+    test_dir = os.path.join(base_dir, "data", "test")
+    model_path = os.path.join(base_dir, "models", "model.keras")
     metrics_path = ""
     if len(experiment_name) == 0:
-        metrics_path = os.path.join(base_path, "results", "metrics.json")
+        metrics_path = os.path.join(base_dir, "results", "metrics.json")
     else:
         metrics_path = os.path.join(
-            base_path, "results", experiment_name, f"run{run_id:d2}", "metrics.json"
+            base_dir, "results", experiment_name, f"run{run_id:d2}", "metrics.json"
         )
 
     os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
@@ -55,7 +55,11 @@ def configure_paths(base_path: str, experiment_name: str = "", run_id: int = 1):
 
 
 def load_test_data(
-    test_dir: str, image_size: typing.Tuple[int, int] = (224, 224), batch_size: int = 32
+    test_dir: str,
+    normalization: str = "recaling",
+    base_model: str = "resnet",
+    image_size: typing.Tuple[int, int] = (224, 224),
+    batch_size: int = 32,
 ):
     test_data = keras.utils.image_dataset_from_directory(
         test_dir,
@@ -65,11 +69,23 @@ def load_test_data(
         shuffle=False,
     )
 
-    # NORMALIZATION AND PERFORMANCE OPTIMIZATION
+    # NORMALIZATION
 
-    normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
+    normalization_layer = None
+
+    if normalization == "rescaling":
+        normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
+    elif normalization == "preproccess_input":
+        if base_model == "resnet":
+            normalization_layer = keras.applications.resnet.preprocess_input
+        elif base_model == "densenet":
+            normalization_layer = keras.applications.densenet.preprocess_input
+        elif base_model == "efficientnet":
+            normalization_layer = keras.applications.efficientnet.preprocess_input
 
     test_data = test_data.map(lambda x, y: (normalization_layer(x), y))
+
+    # PERFORMANCE OPTIMIZATION
 
     test_data = test_data.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -85,6 +101,8 @@ def test_pipeline(
     base_dir: str,
     experiment_name: str = "",
     run_id: int = 1,
+    normalization: str = "rescaling",
+    base_model: str = "resnet",
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
 ):
@@ -92,7 +110,13 @@ def test_pipeline(
         base_dir, experiment_name=experiment_name, run_id=run_id
     )
 
-    test_data = load_test_data(test_dir, image_size=image_size, batch_size=batch_size)
+    test_data = load_test_data(
+        test_dir,
+        normalization=normalization,
+        base_model=base_model,
+        image_size=image_size,
+        batch_size=batch_size,
+    )
 
     model = keras.models.load_model(model_path)
 
@@ -117,6 +141,10 @@ def test_pipeline(
         "FN": int(FN),
         "TP": int(TP),
     }
+    
+    metrics["precision"] = sklearn.metrics.precision_score(y_true, y_pred)
+
+    metrics["recall"] = sklearn.metrics.recall_score(y_true, y_pred)
 
     metrics["f1_score"] = sklearn.metrics.f1_score(y_true, y_pred)
 
@@ -136,9 +164,7 @@ def test_pipeline(
 
 
 def main(args):
-    test_pipeline(
-        base_dir=args.base_dir,
-    )
+    test_pipeline(base_dir=args.base_dir)
 
 
 if __name__ == "__main__":
