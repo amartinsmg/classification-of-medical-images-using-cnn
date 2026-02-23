@@ -21,7 +21,6 @@ base/
 """
 
 import os
-import sys
 import argparse
 import tensorflow as tf
 import keras
