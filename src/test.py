@@ -136,14 +136,14 @@ def test_pipeline(
 
     # METRICS CALCULATION
 
-    accuray = sklearn.metrics.accuracy_score(y_true, y_pred)
+    accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
     confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
 
     TN, FP, FN, TP = confusion_matrix.ravel()
 
     metrics = {
-        "accuracy": float(accuray),
+        "accuracy": float(accuracy),
         "precision": float(sklearn.metrics.precision_score(y_true, y_pred)),
         "recall": float(sklearn.metrics.recall_score(y_true, y_pred)),
         "f1_score": float(sklearn.metrics.f1_score(y_true, y_pred)),
