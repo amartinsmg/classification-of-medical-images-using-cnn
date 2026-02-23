@@ -109,6 +109,9 @@ def test_pipeline(
     batch_size: int = 32,
     threshold: float = 0.5,
 ):
+
+    # PATH CONFIGURATION AND LOADING OF TEST DATA AND MODEL
+
     test_dir, model_path, metrics_path = configure_paths(
         base_dir, experiment_name=experiment_name, run_id=run_id
     )
@@ -123,41 +126,51 @@ def test_pipeline(
 
     model = keras.models.load_model(model_path)
 
+    # EXTRACTION OF TRUE LABELS, PREDICTION SCORES, AND CONVERSION TO BINARY PREDICTIONS
+
     y_true = np.concatenate([y for x, y in test_data], axis=0).flatten()
 
     y_scores = model.predict(test_data).flatten()
 
     y_pred = (y_scores > threshold).astype(int)
 
+    # METRICS CALCULATION
+
+    accuray = sklearn.metrics.accuracy_score(y_true, y_pred)
     confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
+    fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
 
     TN, FP, FN, TP = confusion_matrix.ravel()
 
     metrics = {
-        "accuracy": sklearn.metrics.accuracy_score(y_true, y_pred),
-        "precision": sklearn.metrics.precision_score(y_true, y_pred),
-        "recall": sklearn.metrics.recall_score(y_true, y_pred),
-        "f1_score": sklearn.metrics.f1_score(y_true, y_pred),
-        "specificity": TN / (TN + FP) if (TN + TP) > 0 else 0,
-        "auc-roc": sklearn.metrics.roc_auc_score(y_true, y_scores),
+        "accuracy": float(accuray),
+        "precision": float(sklearn.metrics.precision_score(y_true, y_pred)),
+        "recall": float(sklearn.metrics.recall_score(y_true, y_pred)),
+        "f1_score": float(sklearn.metrics.f1_score(y_true, y_pred)),
+        "specificity": float(TN / (TN + FP) if (TN + FP) > 0 else 0),
+        "auc-roc": float(sklearn.metrics.roc_auc_score(y_true, y_scores)),
         "confusion_matrix": {
             "TN": int(TN),
             "FP": int(FP),
             "FN": int(FN),
             "TP": int(TP),
         },
+        "roc-curve": {"fpr": fpr.tolist(), "tpr": tpr.tolist()},
     }
 
-    print(json.dumps(metrics, indent=4))
-
-    fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
-
-    metrics["roc-curve"] = {"fpr": fpr.tolist(), "tpr": tpr.tolist()}
+    # SAVE METRICS TO JSON AND PRINT SUMMARY
 
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=4)
 
-    return y_true, y_pred, metrics
+    summary = {x: y for x, y in metrics.items() if x != "roc-curve"}
+
+    print(
+        f"\n--- Experiment Summary ({experiment_name}) ---\n",
+        json.dumps(summary, indent=4),
+    )
+
+    return y_true, y_scores, metrics
 
 
 # ======================================
