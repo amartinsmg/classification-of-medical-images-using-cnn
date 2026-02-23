@@ -142,6 +142,7 @@ def test_pipeline(
     TN, FP, FN, TP = confusion_matrix.ravel()
 
     metrics = {
+        "decision_threshold": threshold,
         "accuracy": float(accuracy),
         "precision": float(sklearn.metrics.precision_score(y_true, y_pred)),
         "recall": float(sklearn.metrics.recall_score(y_true, y_pred)),
