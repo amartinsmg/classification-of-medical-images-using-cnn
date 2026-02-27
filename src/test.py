@@ -42,7 +42,7 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
         metrics_path = os.path.join(base_dir, "results", "metrics.json")
     else:
         metrics_path = os.path.join(
-            base_dir, "results", experiment_name, f"run{run_id:d2}", "metrics.json"
+            base_dir, "results", experiment_name, f"run{run_id:02d}", "metrics.json"
         )
 
     os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
