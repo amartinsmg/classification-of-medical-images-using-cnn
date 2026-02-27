@@ -39,7 +39,7 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
         RESULT_DIR = RESULT_DIR = os.path.join(base_dir, "results")
     else:
         RESULT_DIR = os.path.join(
-            base_dir, "results", experiment_name, f"run{run_id:d2}"
+            base_dir, "results", experiment_name, f"run{run_id:02d}"
         )
 
     train_dir = os.path.join(base_dir, "data", "train")
