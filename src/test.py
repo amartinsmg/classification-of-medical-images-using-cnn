@@ -63,6 +63,9 @@ def load_test_data(
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
 ):
+
+    # DATASET LOADING
+
     test_data = keras.utils.image_dataset_from_directory(
         test_dir,
         image_size=image_size,
@@ -77,7 +80,7 @@ def load_test_data(
 
     if normalization == "rescaling":
         normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
-    elif normalization == "preproccess_input":
+    elif normalization == "preprocess_input":
         if base_model == "resnet":
             normalization_layer = keras.applications.resnet.preprocess_input
         elif base_model == "densenet":
@@ -100,38 +103,40 @@ def load_test_data(
 
 
 def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float = 0.5):
+
+    # THRESHOLDING TO GET PREDICTED LABELS
+
     y_pred = (y_scores > threshold).astype(int)
 
     # METRICS CALCULATION
 
-    accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
     confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
-    fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
 
     TN, FP, FN, TP = confusion_matrix.ravel()
 
-    metrics = {
-        "summary": {
-            "decision_threshold": threshold,
-            "accuracy": float(accuracy),
-            "precision": float(sklearn.metrics.precision_score(y_true, y_pred)),
-            "recall": float(sklearn.metrics.recall_score(y_true, y_pred)),
-            "f1_score": float(sklearn.metrics.f1_score(y_true, y_pred)),
-            "specificity": float(TN / (TN + FP) if (TN + FP) > 0 else 0),
-            "auc-roc": float(sklearn.metrics.roc_auc_score(y_true, y_scores)),
-        },
-        "details": {
-            "confusion_matrix": {
-                "TN": int(TN),
-                "FP": int(FP),
-                "FN": int(FN),
-                "TP": int(TP),
-            },
-            "roc-curve": {"fpr": fpr.tolist(), "tpr": tpr.tolist()},
-        },
+    summary = {
+        "decision_threshold": threshold,
+        "accuracy": float(sklearn.metrics.accuracy_score(y_true, y_pred)),
+        "precision": float(sklearn.metrics.precision_score(y_true, y_pred)),
+        "recall": float(sklearn.metrics.recall_score(y_true, y_pred)),
+        "f1_score": float(sklearn.metrics.f1_score(y_true, y_pred)),
+        "specificity": float(TN / (TN + FP) if (TN + FP) > 0 else 0),
+        "auc-roc": float(sklearn.metrics.roc_auc_score(y_true, y_scores)),
     }
 
-    return metrics
+    fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
+
+    details = {
+        "confusion_matrix": {
+            "TN": int(TN),
+            "FP": int(FP),
+            "FN": int(FN),
+            "TP": int(TP),
+        },
+        "roc-curve": {"fpr": fpr.tolist(), "tpr": tpr.tolist()},
+    }
+
+    return summary, details
 
 
 # ======================================
@@ -139,12 +144,14 @@ def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float
 # ======================================
 
 
-def save_and_report(metrics_path: str, metrics: dict, experiment_name: str = ""):
+def save_and_report(
+    metrics_path: str, summary: dict, details: dict, experiment_name: str = ""
+):
 
     # SAVE METRICS TO JSON
 
     with open(metrics_path, "w") as f:
-        json.dump(metrics, f, indent=4)
+        json.dump({"summary": summary, "details": details}, f, indent=4)
 
     # PRINT SUMMARY TABLE
 
@@ -157,10 +164,11 @@ def save_and_report(metrics_path: str, metrics: dict, experiment_name: str = "")
         "Specificity",
         "AUC ROC",
     ]
-    summary_values = [metrics["summary"].values()]
 
     print(f"\n Experiment Summary ({experiment_name})")
-    print(tabulate.tabulate(summary_values, headers=summary_headers, tablefmt="grid"))
+    print(
+        tabulate.tabulate([summary.values()], headers=summary_headers, tablefmt="grid")
+    )
 
 
 # ======================================
@@ -203,11 +211,11 @@ def test_pipeline(
 
     # CALCULATE AND METRICS
 
-    metrics = calculate_metrics(y_true, y_scores, threshold=threshold)
+    summary, details = calculate_metrics(y_true, y_scores, threshold=threshold)
 
-    save_and_report(metrics_path, metrics, experiment_name=experiment_name)
+    save_and_report(metrics_path, summary, details, experiment_name=experiment_name)
 
-    return y_true, y_scores, metrics
+    return y_true, y_scores
 
 
 # ======================================
