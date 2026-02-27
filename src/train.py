@@ -70,8 +70,7 @@ def load_datasets(
     batch_size: int = 32,
     seed: int = 42,
 ):
-
-    keras.utils.set_random_seed(seed)
+    # LOAD DATASETS
 
     train_data = keras.utils.image_dataset_from_directory(
         train_dir,
@@ -79,6 +78,7 @@ def load_datasets(
         batch_size=batch_size,
         label_mode="binary",
         shuffle=True,
+        seed=seed,
     )
 
     val_data = keras.utils.image_dataset_from_directory(
@@ -93,7 +93,7 @@ def load_datasets(
 
     if normalization == "rescaling":
         normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
-    elif normalization == "preproccess_input":
+    elif normalization == "preprocess_input":
         if base_model == "resnet":
             normalization_layer = keras.applications.resnet.preprocess_input
         elif base_model == "densenet":
@@ -114,7 +114,9 @@ def load_datasets(
                 keras.layers.RandomZoom(0.1),
             ]
         )
-        train_data = train_data.map(lambda x, y: (data_augmentation(x, training=True), y))
+        train_data = train_data.map(
+            lambda x, y: (data_augmentation(x, training=True), y)
+        )
 
     # PERFORMANCE OPTMIZATION
 
@@ -133,6 +135,9 @@ def build_model(
     base_model_arch: str = "resnet",
     input_shape: typing.Tuple[int, int, int] = (224, 224, 3),
 ):
+    
+    # BASE MODEL LOADING
+
     base_model = None
     if base_model_arch == "resnet":
         base_model = keras.applications.ResNet50(
@@ -149,12 +154,16 @@ def build_model(
 
     base_model.trainable = False
 
+    # MODEL BUILDING
+
     inputs = keras.Input(shape=input_shape)
     x = base_model(inputs, training=False)
     x = keras.layers.GlobalAveragePooling2D()(x)
     x = keras.layers.Dense(128, activation="relu")(x)
     outputs = keras.layers.Dense(1, activation="sigmoid")(x)
     model = keras.models.Model(inputs, outputs)
+
+    # MODEL COMPILATION
 
     model.compile(
         optimizer="adam",
@@ -224,6 +233,13 @@ def train_pipeline(
     epochs: int = 10,
     seed: int = 42,
 ):
+
+    # SET SEEDS FOR REPRODUCIBILITY
+
+    keras.utils.set_random_seed(seed)
+
+    # CONFIGURATION DICTIONARY FOR RESULTS SAVING
+
     config_dict = {
         "base_model": "",
         "weights": "imagenet",
@@ -245,6 +261,8 @@ def train_pipeline(
     if data_augmentation:
         config_dict["preprocessing"].append("data augmentation")
 
+    # CONFIGURE PATHS AND LOAD DATASETS
+
     train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
         configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
     )
@@ -262,9 +280,13 @@ def train_pipeline(
 
     input_shape = image_size + (3,)
 
+    # BUILD AND COMPILE MODEL
+
     model = build_model(base_model_arch=base_model, input_shape=input_shape)
 
     model, history = train_model(model, train_data, val_data, epochs=epochs)
+
+    # SAVE MODEL AND RESULTS
 
     save_results(
         model,
