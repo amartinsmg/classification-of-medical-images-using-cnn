@@ -12,15 +12,20 @@ base/
 └── results/
       └── experiment_name
             ├── run01/
-            │    ├── metrics.json
-            │    └── config.json
+            │    ├── config.json
+            │    ├── history.json
+            │    └── metrics.json
             ├── run02/
+            │    ├── history.json
             │    └── metrics.json
             └── run03/
+                 ├── history.json
                  └── metrics.json
 
 """
 
+import json
+import glob
 
 def calculate_mean_and_std(
     base_dir: str,
