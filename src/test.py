@@ -35,15 +35,21 @@ import tabulate
 # ======================================
 
 
-def configure_paths(base_dir: pathlib.Path, experiment_name: str = "", run_id: int = 1):
-    test_dir = base_dir / "data" / "test"
-    model_path = base_dir / "models" / "model.keras"
+def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+    base_path = pathlib.Path(base_dir).resolve()
+
+    test_dir = base_path / "data" / "test"
+    model_path = base_path / "models" / "model.keras"
     metrics_path = None
     if len(experiment_name) == 0:
-        metrics_path = base_dir / "results" / "metrics.json"
+        metrics_path = base_path / "results" / "metrics.json"
     else:
         metrics_path = (
-            base_dir / "results" / experiment_name / f"run{run_id:02d}" / "metrics.json"
+            base_path
+            / "results"
+            / experiment_name
+            / f"run{run_id:02d}"
+            / "metrics.json"
         )
 
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
@@ -145,7 +151,7 @@ def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float
 
 
 def save_and_report(
-    metrics_path: str, summary: dict, details: dict, experiment_name: str = ""
+    metrics_path, summary: dict, details: dict, experiment_name: str = ""
 ):
 
     # SAVE METRICS TO JSON
@@ -224,7 +230,7 @@ def test_pipeline(
 
 
 def main(args):
-    test_pipeline(base_dir=pathlib.Path(args.base_dir).resolve())
+    test_pipeline(base_dir=args.base_dir)
 
 
 if __name__ == "__main__":
