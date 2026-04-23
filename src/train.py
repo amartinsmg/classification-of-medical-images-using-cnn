@@ -65,8 +65,8 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 
 
 def load_datasets(
-    train_dir: str,
-    val_dir: str,
+    train_dir,
+    val_dir,
     normalization: str = "rescaling",
     base_model: str = "resnet",
     data_aug: bool = True,
@@ -233,10 +233,10 @@ def save_results(
     model: keras.models.Model,
     history: keras.callbacks.History,
     config_dict: dict,
-    model_path: str,
-    model_weights_path: str,
-    history_path: str,
-    config_path: str,
+    model_path,
+    model_weights_path,
+    history_path,
+    config_path,
 ):
     model.save(model_path)
 
