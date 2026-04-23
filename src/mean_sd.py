@@ -27,4 +27,16 @@ def calculate_mean_and_std(
     experiment_name: str = "",
     total_runs: int = 3,
 ):
+    summary = [
+        "decision_threshold",
+        "accuracy",
+        "precision",
+        "recall",
+        "f1_score",
+        "specificity",
+        "auc-roc",
+    ]
+
+    
+
     return None
