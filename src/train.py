@@ -21,7 +21,7 @@ base/
 
 """
 
-import os
+import pathlib
 import argparse
 import tensorflow as tf
 import keras
@@ -34,23 +34,23 @@ import typing
 # ======================================
 
 
-def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+def configure_paths(base_dir: pathlib.Path, experiment_name: str = "", run_id: int = 1):
     if len(experiment_name) == 0:
-        RESULT_DIR = RESULT_DIR = os.path.join(base_dir, "results")
+        RESULT_DIR = base_dir / "results"
     else:
-        RESULT_DIR = os.path.join(
-            base_dir, "results", experiment_name, f"run{run_id:02d}"
-        )
+        RESULT_DIR = base_dir / "results" / experiment_name / f"run{run_id:02d}" 
 
-    train_dir = os.path.join(base_dir, "data", "train")
-    val_dir = os.path.join(base_dir, "data", "val")
-    model_path = os.path.join(base_dir, "models", "model.keras")
-    model_weights_path = os.path.join(base_dir, "models", "model.weights.h5")
-    history_path = os.path.join(RESULT_DIR, "history.json")
-    config_path = os.path.join(RESULT_DIR, "config.json")
+    train_dir = base_dir / "data" / "train"
+    val_dir = base_dir / "data" / "val"
+    model_path = base_dir / "models" / "model.keras"
+    model_weights_path = base_dir / "models" / "model.weights.h5"
+    history_path = RESULT_DIR / "history.json"
+    config_path = RESULT_DIR / "config.json"
 
-    os.makedirs(RESULT_DIR, exist_ok=True)
-    os.makedirs(os.path.dirname(history_path), exist_ok=True)
+    pathlib.Path.mkdir
+
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
+    history_path.parent.mkdir(parents=True, exist_ok=True)
 
     return train_dir, val_dir, model_path, model_weights_path, history_path, config_path
 
@@ -307,7 +307,7 @@ def train_pipeline(
 
 
 def main(args):
-    train_pipeline(base_dir=args.base_dir)
+    train_pipeline(base_dir=pathlib.Path(args.base_dir).resolve())
 
 
 if __name__ == "__main__":
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--base-dir",
         type=str,
-        default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+        default=str(pathlib.Path(__file__).resolve().parents[1]),
         help="Base project directory. Default is the parent directory of the script directory.",
     )
 
