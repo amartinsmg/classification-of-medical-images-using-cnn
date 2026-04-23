@@ -21,14 +21,15 @@ base/
 
 """
 
-import pathlib
 import argparse
-import tensorflow as tf
-import keras
 import json
+import pathlib
 import typing
+
+import keras
 import numpy as np
 import sklearn as sk
+import tensorflow as tf
 
 
 # ======================================
