@@ -20,8 +20,8 @@ base/
 
 """
 
-import os
 import argparse
+import pathlib
 import tensorflow as tf
 import keras
 import typing
@@ -35,18 +35,18 @@ import tabulate
 # ======================================
 
 
-def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
-    test_dir = os.path.join(base_dir, "data", "test")
-    model_path = os.path.join(base_dir, "models", "model.keras")
-    metrics_path = ""
+def configure_paths(base_dir: pathlib.Path, experiment_name: str = "", run_id: int = 1):
+    test_dir = base_dir / "data" / "test"
+    model_path = base_dir / "models" / "model.keras"
+    metrics_path = None
     if len(experiment_name) == 0:
-        metrics_path = os.path.join(base_dir, "results", "metrics.json")
+        metrics_path = base_dir / "results" / "metrics.json"
     else:
-        metrics_path = os.path.join(
-            base_dir, "results", experiment_name, f"run{run_id:02d}", "metrics.json"
+        metrics_path = (
+            base_dir / "results" / experiment_name / f"run{run_id:02d}" / "metrics.json"
         )
 
-    os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+    metrics_path.parent.mkdir(parents=True, exist_ok=True)
 
     return test_dir, model_path, metrics_path
 
@@ -224,7 +224,7 @@ def test_pipeline(
 
 
 def main(args):
-    test_pipeline(base_dir=args.base_dir)
+    test_pipeline(base_dir=pathlib.Path(args.base_dir).resolve())
 
 
 if __name__ == "__main__":
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--base-dir",
         type=str,
-        default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+        default=str(pathlib.Path(__file__).resolve().parents[1]),
         help="Base project directory. Default is the parent directory of the script.",
     )
 
