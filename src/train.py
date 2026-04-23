@@ -27,6 +27,8 @@ import tensorflow as tf
 import keras
 import json
 import typing
+import numpy as np
+import sklearn as sk
 
 
 # ======================================
@@ -38,7 +40,7 @@ def configure_paths(base_dir: pathlib.Path, experiment_name: str = "", run_id: i
     if len(experiment_name) == 0:
         RESULT_DIR = base_dir / "results"
     else:
-        RESULT_DIR = base_dir / "results" / experiment_name / f"run{run_id:02d}" 
+        RESULT_DIR = base_dir / "results" / experiment_name / f"run{run_id:02d}"
 
     train_dir = base_dir / "data" / "train"
     val_dir = base_dir / "data" / "val"
@@ -134,8 +136,9 @@ def load_datasets(
 def build_model(
     base_model_arch: str = "resnet",
     input_shape: typing.Tuple[int, int, int] = (224, 224, 3),
+    learning_rate: float = 0.001,
 ):
-    
+
     # BASE MODEL LOADING
 
     base_model = None
@@ -163,10 +166,14 @@ def build_model(
     outputs = keras.layers.Dense(1, activation="sigmoid")(x)
     model = keras.models.Model(inputs, outputs)
 
+    # OPTIMIZER CONFIGURATION
+
+    optimezer = keras.optimizers.Adam(learning_rate=learning_rate)
+
     # MODEL COMPILATION
 
     model.compile(
-        optimizer="adam",
+        optimizer=optimezer,
         loss="binary_crossentropy",
         metrics=[
             keras.metrics.BinaryAccuracy(name="accuracy"),
@@ -182,9 +189,35 @@ def build_model(
 # ======================================
 
 
-def train_model(model: keras.models.Model, train_data, val_data, epochs: int = 10):
+def train_model(
+    model: keras.models.Model,
+    train_data,
+    val_data,
+    epochs: int = 10,
+    class_weights: bool = False,
+):
 
-    history = model.fit(train_data, validation_data=val_data, epochs=epochs)
+    history = None
+
+    if not class_weights:
+        history = model.fit(train_data, validation_data=val_data, epochs=epochs)
+    else:
+        y_train = np.concatenate([y for _, y in train_data], axis=0)
+
+        classes = np.unique(y_train)
+        weights = sk.utils.class_weight.compute_class_weight(
+            class_weights="balanced",
+            classes=classes,
+            y=y_train,
+        )
+        class_weights_dict = dict(zip(classes, weights))
+
+        history = model.fit(
+            train_data,
+            validation_data=val_data,
+            epochs=epochs,
+            class_weight=class_weights_dict,
+        )
 
     return model, history
 
@@ -232,11 +265,13 @@ def train_pipeline(
     batch_size: int = 32,
     epochs: int = 10,
     seed: int = 42,
+    class_weights: bool = False,
+    learning_rate: float = 0.001,
 ):
-
-    # SET SEEDS FOR REPRODUCIBILITY
+    # SET SEEDS AND FORCE DETERMINISTIC GPU OPERATIONS
 
     keras.utils.set_random_seed(seed)
+    tf.config.experimental.enable_op_determinism()
 
     # CONFIGURATION DICTIONARY FOR RESULTS SAVING
 
@@ -249,6 +284,11 @@ def train_pipeline(
         "batch_size": batch_size,
         "epochs": epochs,
         "seed": seed,
+        "class_weights": class_weights,
+        "optimizer": {
+            "name": "adam",
+            "learning_rate": learning_rate,
+        },
     }
 
     if base_model == "resnet":
@@ -284,7 +324,9 @@ def train_pipeline(
 
     model = build_model(base_model_arch=base_model, input_shape=input_shape)
 
-    model, history = train_model(model, train_data, val_data, epochs=epochs)
+    model, history = train_model(
+        model, train_data, val_data, epochs=epochs, class_weights=class_weights
+    )
 
     # SAVE MODEL AND RESULTS
 
