@@ -63,7 +63,7 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 
 
 def load_test_data(
-    test_dir: str,
+    test_dir,
     normalization: str = "recaling",
     base_model: str = "resnet",
     image_size: typing.Tuple[int, int] = (224, 224),
