@@ -1,0 +1,45 @@
+# Ciência de Dados e Machine Learning
+
+numpy
+pandas
+scipy
+scikit-learn
+scikit-image
+matplotlib==3.10.6
+seaborn
+plotly
+bokeh
+statsmodels
+tensorflow
+keras
+tensorboard
+nltk
+xarray
+
+# Interface e visualização
+
+streamlit
+altair
+holoviews
+hvplot
+panel
+ipywidgets
+
+# Utilitários
+
+pyodbc
+python-dotenv
+tqdm
+pyyaml
+openpyxl
+tabulate
+requests
+
+# Ambiente de Trabalho
+
+jupyterlab
+notebook
+ipywidgets
+ipympl
+nbconvert
+ipykernel
