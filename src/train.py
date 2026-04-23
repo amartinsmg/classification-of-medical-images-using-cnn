@@ -36,16 +36,18 @@ import sklearn as sk
 # ======================================
 
 
-def configure_paths(base_dir: pathlib.Path, experiment_name: str = "", run_id: int = 1):
-    if len(experiment_name) == 0:
-        RESULT_DIR = base_dir / "results"
-    else:
-        RESULT_DIR = base_dir / "results" / experiment_name / f"run{run_id:02d}"
+def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+    base_path = pathlib.Path(base_dir).resolve()
 
-    train_dir = base_dir / "data" / "train"
-    val_dir = base_dir / "data" / "val"
-    model_path = base_dir / "models" / "model.keras"
-    model_weights_path = base_dir / "models" / "model.weights.h5"
+    if len(experiment_name) == 0:
+        RESULT_DIR = base_path / "results"
+    else:
+        RESULT_DIR = base_path / "results" / experiment_name / f"run{run_id:02d}"
+
+    train_dir = base_path / "data" / "train"
+    val_dir = base_path / "data" / "val"
+    model_path = base_path / "models" / "model.keras"
+    model_weights_path = base_path / "models" / "model.weights.h5"
     history_path = RESULT_DIR / "history.json"
     config_path = RESULT_DIR / "config.json"
 
@@ -349,7 +351,7 @@ def train_pipeline(
 
 
 def main(args):
-    train_pipeline(base_dir=pathlib.Path(args.base_dir).resolve())
+    train_pipeline(base_dir=args.base_dir)
 
 
 if __name__ == "__main__":
