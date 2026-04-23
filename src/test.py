@@ -21,14 +21,15 @@ base/
 """
 
 import argparse
-import pathlib
-import tensorflow as tf
-import keras
-import typing
-import numpy as np
-import sklearn
 import json
+import pathlib
 import tabulate
+import typing
+
+import keras
+import numpy as np
+import sklearn as sk
+import tensorflow as tf
 
 # ======================================
 # PATH CONFIGURATION
@@ -116,21 +117,21 @@ def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float
 
     # METRICS CALCULATION
 
-    confusion_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
+    confusion_matrix = sk.metrics.confusion_matrix(y_true, y_pred)
 
     TN, FP, FN, TP = confusion_matrix.ravel()
 
     summary = {
         "decision_threshold": threshold,
-        "accuracy": float(sklearn.metrics.accuracy_score(y_true, y_pred)),
-        "precision": float(sklearn.metrics.precision_score(y_true, y_pred)),
-        "recall": float(sklearn.metrics.recall_score(y_true, y_pred)),
-        "f1_score": float(sklearn.metrics.f1_score(y_true, y_pred)),
+        "accuracy": float(sk.metrics.accuracy_score(y_true, y_pred)),
+        "precision": float(sk.metrics.precision_score(y_true, y_pred)),
+        "recall": float(sk.metrics.recall_score(y_true, y_pred)),
+        "f1_score": float(sk.metrics.f1_score(y_true, y_pred)),
         "specificity": float(TN / (TN + FP) if (TN + FP) > 0 else 0),
-        "auc-roc": float(sklearn.metrics.roc_auc_score(y_true, y_scores)),
+        "auc-roc": float(sk.metrics.roc_auc_score(y_true, y_scores)),
     }
 
-    fpr, tpr, _ = sklearn.metrics.roc_curve(y_true, y_scores)
+    fpr, tpr, _ = sk.metrics.roc_curve(y_true, y_scores)
 
     details = {
         "confusion_matrix": {
