@@ -225,13 +225,8 @@ def test_pipeline(
 
 
 # ======================================
-# MAIN FUNCTION
+# MAIN EXECUTION
 # ======================================
-
-
-def main(args):
-    test_pipeline(base_dir=args.base_dir)
-
 
 if __name__ == "__main__":
 
@@ -250,4 +245,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args)
+    test_pipeline(base_dir=args.base_dir)
