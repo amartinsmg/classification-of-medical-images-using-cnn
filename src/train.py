@@ -265,10 +265,10 @@ def train_pipeline(
     data_augmentation: bool = True,
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
-    epochs: int = 10,
-    seed: int = 42,
     class_weights: bool = False,
     learning_rate: float = 0.001,
+    epochs: int = 10,
+    seed: int = 42,
 ):
     # SET SEEDS AND FORCE DETERMINISTIC GPU OPERATIONS
 
@@ -284,13 +284,13 @@ def train_pipeline(
         "preprocessing": [normalization],
         "image_size": image_size,
         "batch_size": batch_size,
-        "epochs": epochs,
-        "seed": seed,
-        "class_weights": class_weights,
         "optimizer": {
             "name": "adam",
             "learning_rate": learning_rate,
         },
+        "class_weights": class_weights,
+        "epochs": epochs,
+        "seed": seed,
     }
 
     if base_model == "resnet":
