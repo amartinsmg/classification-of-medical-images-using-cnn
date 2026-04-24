@@ -43,7 +43,7 @@ def load_runs(experiment_path) -> list[dict]:
 
     runs = []
     for run_dir in runs_dirs:
-        run = []
+        run = {}
         for fname in ["config", "metrics", "history"]:
             fpath = run_dir / (fname + ".json")
             if not fpath.exists():
@@ -116,7 +116,7 @@ def aggregate_roc(experiment: list[dict], n_points: int = 200):
         fpr = np.array(roc["fpr"])
         tpr = np.array(roc["tpr"])
 
-        inter_fn = scipy.interpolate.inter1d(
+        inter_fn = scipy.interpolate.interp1d(
             fpr, tpr, kind="linear", bounds_error=False, fill_value=(0.0, 1.0)
         )
         tprs.append(inter_fn(common_fpr))
