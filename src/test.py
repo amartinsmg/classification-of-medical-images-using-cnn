@@ -122,11 +122,11 @@ def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float
     TN, FP, FN, TP = confusion_matrix.ravel()
 
     summary = {
-        "decision_threshold": threshold,
+        "decision-threshold": threshold,
         "accuracy": float(sk.metrics.accuracy_score(y_true, y_pred)),
         "precision": float(sk.metrics.precision_score(y_true, y_pred)),
         "recall": float(sk.metrics.recall_score(y_true, y_pred)),
-        "f1_score": float(sk.metrics.f1_score(y_true, y_pred)),
+        "f1-score": float(sk.metrics.f1_score(y_true, y_pred)),
         "specificity": float(TN / (TN + FP) if (TN + FP) > 0 else 0),
         "auc-roc": float(sk.metrics.roc_auc_score(y_true, y_scores)),
     }
@@ -134,7 +134,7 @@ def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float
     fpr, tpr, _ = sk.metrics.roc_curve(y_true, y_scores)
 
     details = {
-        "confusion_matrix": {
+        "confusion-matrix": {
             "TN": int(TN),
             "FP": int(FP),
             "FN": int(FN),
