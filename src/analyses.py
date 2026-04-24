@@ -72,7 +72,11 @@ def aggregate_metrics(experiment: list[dict]):
 
     for key in keys:
         values = [run["metrics"]["summary"][key] for run in runs]
-        metrics[key] = {"mean": np.mean(values), "std": np.std(values)}
+        metrics[key] = (
+            {"mean": np.mean(values), "std": np.std(values)}
+            if not key == "decision-threshold"
+            else values[0]
+        )
 
     return metrics
 
