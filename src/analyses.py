@@ -16,9 +16,11 @@ base/
             │    ├── history.json
             │    └── metrics.json
             ├── run02/
+            │    ├── config.json
             │    ├── history.json
             │    └── metrics.json
             └── run03/
+                 ├── config.json
                  ├── history.json
                  └── metrics.json
 
