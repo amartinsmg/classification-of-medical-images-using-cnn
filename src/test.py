@@ -36,7 +36,7 @@ import tensorflow as tf
 # ======================================
 
 
-def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     base_path = pathlib.Path(base_dir).resolve()
 
     test_dir = base_path / "data" / "test"
@@ -63,7 +63,7 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 # ======================================
 
 
-def load_test_data(
+def _load_test_data(
     test_dir,
     normalization: str = "recaling",
     base_model: str = "resnet",
@@ -109,7 +109,9 @@ def load_test_data(
 # ======================================
 
 
-def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float = 0.5):
+def _calculate_metrics(
+    y_true: np.ndarray, y_scores: np.ndarray, threshold: float = 0.5
+):
 
     # THRESHOLDING TO GET PREDICTED LABELS
 
@@ -151,7 +153,7 @@ def calculate_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float
 # ======================================
 
 
-def save_and_report(
+def _save_and_report(
     metrics_path, summary: dict, details: dict, experiment_name: str = ""
 ):
 
@@ -196,11 +198,11 @@ def test_pipeline(
 
     # PATH CONFIGURATION AND LOADING OF TEST DATA AND MODEL
 
-    test_dir, model_path, metrics_path = configure_paths(
+    test_dir, model_path, metrics_path = _configure_paths(
         base_dir, experiment_name=experiment_name, run_id=run_id
     )
 
-    test_data = load_test_data(
+    test_data = _load_test_data(
         test_dir,
         normalization=normalization,
         base_model=base_model,
@@ -218,11 +220,11 @@ def test_pipeline(
 
     # CALCULATE AND METRICS
 
-    summary, details = calculate_metrics(y_true, y_scores, threshold=threshold)
+    summary, details = _calculate_metrics(y_true, y_scores, threshold=threshold)
 
-    save_and_report(metrics_path, summary, details, experiment_name=experiment_name)
+    _save_and_report(metrics_path, summary, details, experiment_name=experiment_name)
 
-    return y_true, y_scores
+    return summary
 
 
 # ======================================
