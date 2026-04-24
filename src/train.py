@@ -97,7 +97,7 @@ def _load_datasets(
 
     if normalization == "rescaling":
         normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
-    elif normalization == "preprocess_input":
+    elif normalization == "preprocess-input":
         if base_model == "resnet":
             normalization_layer = keras.applications.resnet.preprocess_input
         elif base_model == "densenet":
@@ -366,6 +366,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # EXECUTE THE TRAIN PIPELINE
 
     train_pipeline(base_dir=args.base_dir)
 

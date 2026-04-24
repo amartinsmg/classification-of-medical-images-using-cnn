@@ -87,7 +87,7 @@ def _load_test_data(
 
     if normalization == "rescaling":
         normalization_layer = tf.keras.layers.Rescaling(1.0 / 255)
-    elif normalization == "preprocess_input":
+    elif normalization == "preprocess-input":
         if base_model == "resnet":
             normalization_layer = keras.applications.resnet.preprocess_input
         elif base_model == "densenet":
@@ -186,7 +186,7 @@ def _save_and_report(
 
 
 def test_pipeline(
-    base_dir: str,
+    base_dir,
     experiment_name: str = "",
     run_id: int = 1,
     normalization: str = "rescaling",
@@ -242,10 +242,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--base-dir",
         type=str,
-        default=str(pathlib.Path(__file__).resolve().parents[1]),
+        default=pathlib.Path(__file__).resolve().parents[1],
         help="Base project directory. Default is the parent directory of the script.",
     )
 
     args = parser.parse_args()
+
+    # EXECUTE THE TEST PIPELINE
 
     test_pipeline(base_dir=args.base_dir)
