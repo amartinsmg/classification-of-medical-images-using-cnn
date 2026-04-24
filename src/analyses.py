@@ -30,6 +30,7 @@ import json
 import pathlib
 
 import numpy as np
+import pandas as pd
 import scipy
 
 
@@ -44,13 +45,20 @@ def load_runs(experiment_path) -> list[dict]:
     runs = []
     for run_dir in runs_dirs:
         run = {}
-        for fname in ["config", "metrics", "history"]:
-            fpath = run_dir / (fname + ".json")
+        for fname in ["config.json", "metrics.json", "history.csv"]:
+            fpath = run_dir / fname
             if not fpath.exists():
-                raise Exception(f"File not found: {fpath}")
-            with open(fpath) as f:
-                run[fname] = json.load(f)
-            runs.append(run)
+                print(f"File not found: {fpath}")
+            elif fname.endswith(".json"):
+                with open(fpath) as f:
+                    run[fname.replace(".json", "")] = json.load(f)
+            elif fname.endswith(".csv"):
+                with open(fpath) as f:
+                    run[fname.replace(".csv", "")] = pd.DataFrame(pd.read_csv(f))
+            else:
+                raise Exception(f"Unknown file type: {fname}")
+
+        runs.append(run)
 
     return runs
 
