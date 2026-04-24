@@ -38,7 +38,7 @@ import tensorflow as tf
 # ======================================
 
 
-def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     base_path = pathlib.Path(base_dir).resolve()
 
     if len(experiment_name) == 0:
@@ -53,8 +53,6 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     history_path = RESULT_DIR / "history.csv"
     config_path = RESULT_DIR / "config.json"
 
-    pathlib.Path.mkdir
-
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
     history_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -66,7 +64,7 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 # ======================================
 
 
-def load_datasets(
+def _load_datasets(
     train_dir,
     val_dir,
     normalization: str = "rescaling",
@@ -137,7 +135,7 @@ def load_datasets(
 # ======================================
 
 
-def build_model(
+def _build_model(
     base_model_arch: str = "resnet",
     input_shape: typing.Tuple[int, int, int] = (224, 224, 3),
     learning_rate: float = 0.001,
@@ -193,7 +191,7 @@ def build_model(
 # ======================================
 
 
-def train_model(
+def _train_model(
     model: keras.models.Model,
     train_data,
     val_data,
@@ -231,7 +229,7 @@ def train_model(
 # ======================================
 
 
-def save_results(
+def _save_results(
     model: keras.models.Model,
     history: keras.callbacks.History,
     config_dict: dict,
@@ -306,10 +304,10 @@ def train_pipeline(
     # CONFIGURE PATHS AND LOAD DATASETS
 
     train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
-        configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
+        _configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
     )
 
-    train_data, val_data = load_datasets(
+    train_data, val_data = _load_datasets(
         train_dir,
         val_dir,
         normalization=normalization,
@@ -324,15 +322,15 @@ def train_pipeline(
 
     # BUILD AND COMPILE MODEL
 
-    model = build_model(base_model_arch=base_model, input_shape=input_shape)
+    model = _build_model(base_model_arch=base_model, input_shape=input_shape)
 
-    model, history = train_model(
+    model, history = _train_model(
         model, train_data, val_data, epochs=epochs, class_weights=class_weights
     )
 
     # SAVE MODEL AND RESULTS
 
-    save_results(
+    _save_results(
         model,
         history,
         config_dict,
@@ -343,6 +341,8 @@ def train_pipeline(
     )
 
     print("Training completed. Model and results saved.")
+
+    return config_dict
 
 
 # ======================================
