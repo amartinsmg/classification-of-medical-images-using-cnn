@@ -28,6 +28,7 @@ import typing
 
 import keras
 import numpy as np
+import pandas as pd
 import sklearn as sk
 import tensorflow as tf
 
@@ -49,7 +50,7 @@ def configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     val_dir = base_path / "data" / "val"
     model_path = base_path / "models" / "model.keras"
     model_weights_path = base_path / "models" / "model.weights.h5"
-    history_path = RESULT_DIR / "history.json"
+    history_path = RESULT_DIR / "history.csv"
     config_path = RESULT_DIR / "config.json"
 
     pathlib.Path.mkdir
@@ -243,10 +244,8 @@ def save_results(
 
     model.save_weights(model_weights_path)
 
-    history_dict = history.history
-
-    with open(history_path, "w") as f:
-        json.dump(history_dict, f, indent=4)
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv(history_path, index=False)
 
     with open(config_path, "w") as f:
         json.dump(config_dict, f, indent=4)
