@@ -4,7 +4,7 @@
 """
 TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
-Exemple task: Classify chest X-ray images as normal or pneumonia.
+Example task: Classify chest X-ray images as normal or pneumonia.
 
 Expected directory structure:
 
@@ -65,7 +65,7 @@ def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 
 def _load_test_data(
     test_dir,
-    normalization: str = "recaling",
+    normalization: str = "rescaling",
     base_model: str = "resnet",
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,

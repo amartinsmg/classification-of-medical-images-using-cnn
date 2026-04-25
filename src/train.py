@@ -4,7 +4,7 @@
 """
 TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
-Exemple task: Classify chest X-ray images as normal or pneumonia.
+Example task: Classify chest X-ray images as normal or pneumonia.
 
 Expected directory structure:
 
@@ -170,12 +170,12 @@ def _build_model(
 
     # OPTIMIZER CONFIGURATION
 
-    optimezer = keras.optimizers.Adam(learning_rate=learning_rate)
+    optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
 
     # MODEL COMPILATION
 
     model.compile(
-        optimizer=optimezer,
+        optimizer=optimizer,
         loss="binary_crossentropy",
         metrics=[
             keras.metrics.BinaryAccuracy(name="accuracy"),
@@ -256,7 +256,7 @@ def _save_results(
 
 def train_pipeline(
     base_dir: str,
-    expereriment_name: str = "",
+    experiment_name: str = "",
     run_id: int = 1,
     base_model: str = "resnet",
     normalization: str = "rescaling",
@@ -304,7 +304,7 @@ def train_pipeline(
     # CONFIGURE PATHS AND LOAD DATASETS
 
     train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
-        _configure_paths(base_dir, experiment_name=expereriment_name, run_id=run_id)
+        _configure_paths(base_dir, experiment_name=experiment_name, run_id=run_id)
     )
 
     train_data, val_data = _load_datasets(

@@ -4,8 +4,6 @@
 """
 TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
-Exemple task: Classify chest X-ray images as normal or pneumonia.
-
 Expected directory structure:
 
 base/

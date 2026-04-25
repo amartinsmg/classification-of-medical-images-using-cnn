@@ -4,9 +4,9 @@
 """
 TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
-db.py — Persistência de experimentos no banco de dados.
+db.py — Experiment persistence in the database.
 
-Uso típico no loop de execução:
+Typical usage in the execution loop:
 
     from db import get_engine, insert_run
 
@@ -58,9 +58,9 @@ def get_engine(db_url: str, schema_dir="schema"):
 def _parse_params(params: dict) -> dict:
     p = {k.replace("-", "_"): v for k, v in params.items()}
 
-    optmizer = p.pop("optimizer", {})
-    p["optimizer_name"] = optmizer.get("name")
-    p["learning_rate"] = optmizer.get("learning-rate")
+    optimizer = p.pop("optimizer", {})
+    p["optimizer_name"] = optimizer.get("name")
+    p["learning_rate"] = optimizer.get("learning-rate")
 
     preprocessing = p.pop("preprocessing", [])
     non_aug = [x for x in preprocessing if x != "data-augmentation"]
