@@ -26,21 +26,31 @@ Uso típico no loop de execução:
 
 """
 
-
+import pathlib
 import warnings
 
 import pandas as pd
 import sqlalchemy
 
 
-def get_engine(db_url: str):
+def get_engine(db_url: str, schema_dir="schema"):
     engine = sqlalchemy.create_engine(db_url)
+
+    schema_path = pathlib.Path(schema_dir) / "schema.sql"
+    if not schema_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {schema_path}")
+
+    schema_sql = schema_path.read_text(encoding="utf-8")
 
     if db_url.startswith("sqlite"):
 
         @sqlalchemy.event.listens_for(engine, "connect")
         def set_sqlite_pragma(conn, _):
             conn.execute("PRAGMA foreign_keys=ON")
+
+    with engine.connect() as conn:
+        conn.execute(sqlalchemy.text(schema_sql))
+        conn.commit()
 
     return engine
 
