@@ -1,12 +1,12 @@
 -- schema.sql
--- Banco de dados para rastreamento de experimentos de classificação de imagens.
+-- Database for tracking image classification experiments.
 --
--- Uso:
+-- Usage:
 --     sqlite3 experiments.db < schema.sql
 PRAGMA foreign_keys = ON;
 
 -- ─────────────────────────────────────────────
--- Tabela principal: uma linha por run
+-- Main table: one row per run
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS runs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,19 +16,19 @@ CREATE TABLE IF NOT EXISTS runs (
 );
 
 -- ─────────────────────────────────────────────
--- Parâmetros da run (config + decision threshold)
+-- Run parameters (config + decision threshold)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS run_params (
     run_id INTEGER PRIMARY KEY,
-    -- Modelo
+    -- Model
     base_model TEXT,
     weights TEXT,
-    -- Pré-processamento
+    -- Preprocessing
     normalization TEXT,
     data_aug BOOLEAN,
-    -- Imagem
+    -- Image
     image_size TEXT,
-    -- Treinamento
+    -- Training
     optimizer_name TEXT,
     learning_rate REAL,
     batch_size INTEGER,
@@ -36,13 +36,13 @@ CREATE TABLE IF NOT EXISTS run_params (
     seed INTEGER,
     class_weights BOOLEAN,
     --
-    -- Avaliação
+    -- Evaluation
     decision_threshold REAL,
     FOREIGN KEY (run_id) REFERENCES runs (id) ON DELETE CASCADE
 );
 
 -- ─────────────────────────────────────────────
--- Métricas de teste da run
+-- Run test metrics
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS run_metrics (
     run_id INTEGER PRIMARY KEY,
@@ -56,9 +56,9 @@ CREATE TABLE IF NOT EXISTS run_metrics (
 );
 
 -- ─────────────────────────────────────────────
--- Views utilitárias
+-- Utility views
 -- ─────────────────────────────────────────────
--- Join completo: uma linha por run com params + metrics
+-- Full join: one row per run with params + metrics
 CREATE VIEW IF NOT EXISTS v_runs_full AS
 SELECT
     r.id,
@@ -87,9 +87,9 @@ FROM
     LEFT JOIN run_params p ON p.run_id = r.id
     LEFT JOIN run_metrics m ON m.run_id = r.id;
 
--- Média e desvio padrão por experimento
--- Nota: SQLite não possui STDDEV nativo.
--- Usa a identidade: std = sqrt(avg(x²) - avg(x)²)
+-- Mean and standard deviation per experiment
+-- Note: SQLite does not have a native STDDEV.
+-- Uses the identity: std = sqrt(avg(x²) - avg(x)²)
 CREATE VIEW IF NOT EXISTS v_experiment_summary AS
 SELECT
     experiment,
