@@ -154,7 +154,11 @@ def _calculate_metrics(
 
 
 def _save_and_report(
-    metrics_path, summary: dict, details: dict, experiment_name: str = ""
+    metrics_path,
+    summary: dict,
+    details: dict,
+    experiment_name: str = "",
+    run_id: int = 1,
 ):
 
     # SAVE METRICS TO JSON
@@ -174,7 +178,7 @@ def _save_and_report(
         "AUC ROC",
     ]
 
-    print(f"\n Experiment Summary ({experiment_name})")
+    print(f"\n Experiment Summary ({experiment_name}: run {run_id})")
     print(
         tabulate.tabulate([summary.values()], headers=summary_headers, tablefmt="grid")
     )
@@ -222,7 +226,9 @@ def test_pipeline(
 
     summary, details = _calculate_metrics(y_true, y_scores, threshold=threshold)
 
-    _save_and_report(metrics_path, summary, details, experiment_name=experiment_name)
+    _save_and_report(
+        metrics_path, summary, details, experiment_name=experiment_name, run_id=run_id
+    )
 
     return summary
 
