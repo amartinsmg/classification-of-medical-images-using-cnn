@@ -39,21 +39,20 @@ import tensorflow as tf
 def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     base_path = pathlib.Path(base_dir).resolve()
 
-    test_dir = base_path / "data" / "test"
-    model_path = base_path / "models" / "model.keras"
-    metrics_path = None
     if len(experiment_name) == 0:
-        metrics_path = base_path / "results" / "metrics.json"
+        MODELS_DIR = base_path / "models"
+        RESULT_DIR = base_path / "results"
     else:
-        metrics_path = (
-            base_path
-            / "results"
-            / experiment_name
-            / f"run{run_id:02d}"
-            / "metrics.json"
-        )
+        MODELS_DIR = base_path / "models" / f"run{run_id:02d}"
+        RESULT_DIR = base_path / "results" / experiment_name / f"run{run_id:02d}"
 
-    metrics_path.parent.mkdir(parents=True, exist_ok=True)
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
+
+    model_path = MODELS_DIR / "model.keras"
+
+    test_dir = base_path / "data" / "test"
+
+    metrics_path = RESULT_DIR / "metrics.json"
 
     return test_dir, model_path, metrics_path
 

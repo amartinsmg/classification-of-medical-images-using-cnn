@@ -42,19 +42,23 @@ def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
     base_path = pathlib.Path(base_dir).resolve()
 
     if len(experiment_name) == 0:
+        MODELS_DIR = base_path / "models"
         RESULT_DIR = base_path / "results"
     else:
+        MODELS_DIR = base_path / "models" / f"run{run_id:02d}"
         RESULT_DIR = base_path / "results" / experiment_name / f"run{run_id:02d}"
+
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
 
     train_dir = base_path / "data" / "train"
     val_dir = base_path / "data" / "val"
-    model_path = base_path / "models" / "model.keras"
-    model_weights_path = base_path / "models" / "model.weights.h5"
+
+    model_path = MODELS_DIR / "model.keras"
+    model_weights_path = MODELS_DIR / "model.weights.h5"
+
     history_path = RESULT_DIR / "history.csv"
     config_path = RESULT_DIR / "config.json"
-
-    RESULT_DIR.mkdir(parents=True, exist_ok=True)
-    history_path.parent.mkdir(parents=True, exist_ok=True)
 
     return train_dir, val_dir, model_path, model_weights_path, history_path, config_path
 
