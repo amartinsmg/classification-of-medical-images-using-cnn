@@ -268,12 +268,15 @@ def train_pipeline(
     epochs: int = 10,
     seed: int = 42,
 ):
-    # SET SEEDS AND FORCE DETERMINISTIC GPU OPERATIONS
+    # SET SEEDS FOR REPRODUCIBILITY
 
     keras.utils.set_random_seed(seed)
-    tf.config.experimental.enable_op_determinism()
 
-    # CONFIGURATION DICTIONARY FOR RESULTS SAVING
+    # Op determinism was disabled due to significant runtime overhead in the
+    # Colab execution environment. Statistical reproducibility is ensured by
+    # fixing the seed before each run and reporting results as mean ± std
+    # across three independent runs.
+    # tf.config.experimental.enable_op_determinism()
 
     config_dict = {
         "base-model": "",
