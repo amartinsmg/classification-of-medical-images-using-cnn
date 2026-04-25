@@ -230,6 +230,8 @@ def test_pipeline(
         metrics_path, summary, details, experiment_name=experiment_name, run_id=run_id
     )
 
+    print("Test completed. Metrics saved.")
+
     return summary
 
 
