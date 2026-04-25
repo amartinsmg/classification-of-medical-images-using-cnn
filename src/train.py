@@ -276,30 +276,30 @@ def train_pipeline(
     # CONFIGURATION DICTIONARY FOR RESULTS SAVING
 
     config_dict = {
-        "base_model": "",
+        "base-model": "",
         "weights": "imagenet",
         "optimizer": "adam",
         "preprocessing": [normalization],
-        "image_size": image_size,
-        "batch_size": batch_size,
+        "image-size": image_size,
+        "batch-size": batch_size,
         "optimizer": {
             "name": "adam",
-            "learning_rate": learning_rate,
+            "learning-rate": learning_rate,
         },
-        "class_weights": class_weights,
+        "class-weights": class_weights,
         "epochs": epochs,
         "seed": seed,
     }
 
     if base_model == "resnet":
-        config_dict["base_model"] = "ResNet50"
+        config_dict["base-model"] = "ResNet50"
     elif base_model == "densenet":
-        config_dict["base_model"] = "DenseNet121"
+        config_dict["base-model"] = "DenseNet121"
     elif base_model == "efficientnet":
-        config_dict["base_model"] = "EfficientNetB0"
+        config_dict["base-model"] = "EfficientNetB0"
 
     if data_augmentation:
-        config_dict["preprocessing"].append("data augmentation")
+        config_dict["preprocessing"].append("data-augmentation")
 
     # CONFIGURE PATHS AND LOAD DATASETS
 
