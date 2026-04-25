@@ -116,4 +116,6 @@ def insert_run(engine, experiment: str, run_name: str, config: dict, metrics: di
         "run_metrics", engine, if_exists="append", index=False
     )
 
+    print(f"Run '{run_name}' of experiment '{experiment}' inserted.")
+
     return RUN_ID
