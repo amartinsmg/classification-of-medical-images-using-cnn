@@ -48,9 +48,9 @@ def get_engine(db_url: str, schema_dir="schema"):
         def set_sqlite_pragma(conn, _):
             conn.execute("PRAGMA foreign_keys=ON")
 
-    with engine.connect() as conn:
-        conn.execute(sqlalchemy.text(schema_sql))
-        conn.commit()
+    with engine.begin() as conn:
+        db_api = conn.connection
+        db_api.executescript(schema_sql)
 
     return engine
 
