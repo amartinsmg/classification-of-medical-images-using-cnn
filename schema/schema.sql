@@ -88,17 +88,31 @@ FROM
     LEFT JOIN run_metrics m ON m.run_id = r.id;
 
 -- Média e desvio padrão por experimento
+-- Nota: SQLite não possui STDDEV nativo.
+-- Usa a identidade: std = sqrt(avg(x²) - avg(x)²)
 CREATE VIEW IF NOT EXISTS v_experiment_summary AS
 SELECT
     experiment,
+ 
     COUNT(*) AS n_runs,
+ 
     ROUND(AVG(accuracy), 4) AS accuracy_mean,
+    ROUND(SQRT(AVG(accuracy * accuracy) - AVG(accuracy) * AVG(accuracy)), 4) AS accuracy_std,
+ 
     ROUND(AVG(precision), 4) AS precision_mean,
+    ROUND(SQRT(AVG(precision * precision) - AVG(precision) * AVG(precision)), 4) AS precision_std,
+ 
     ROUND(AVG(recall), 4) AS recall_mean,
+    ROUND(SQRT(AVG(recall * recall) - AVG(recall) * AVG(recall)), 4) AS recall_std,
+ 
     ROUND(AVG(f1_score), 4) AS f1_mean,
+    ROUND(SQRT(AVG(f1_score * f1_score) - AVG(f1_score) * AVG(f1_score)), 4) AS f1_std,
+ 
     ROUND(AVG(specificity), 4) AS specificity_mean,
-    ROUND(AVG(auc_roc), 4) AS auc_roc_mean
-FROM
-    v_runs_full
-GROUP BY
-    experiment;
+    ROUND(SQRT(AVG(specificity * specificity) - AVG(specificity) * AVG(specificity)), 4) AS specificity_std,
+ 
+    ROUND(AVG(auc_roc), 4) AS auc_roc_mean,
+    ROUND(SQRT(AVG(auc_roc * auc_roc) - AVG(auc_roc) * AVG(auc_roc)), 4) AS auc_roc_std
+ 
+FROM v_runs_full
+GROUP BY experiment;
