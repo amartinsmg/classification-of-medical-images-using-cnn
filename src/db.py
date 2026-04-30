@@ -19,7 +19,7 @@ Typical usage in the execution loop:
         insert_run(
             engine,
             experiment = EXPERIMENT_NAME,
-            run_name   = f"run{i+1:02d}",
+            run_name   = f"run-{i+1:02d}",
             config     = config,
             metrics    = metrics
         )
