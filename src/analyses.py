@@ -36,12 +36,13 @@ import scipy
 # LOAD AND AGGREGATE EXPERIMENT RESULTS
 # ================================================
 
+
 def load_runs(experiment_path) -> dict:
     exp_path = pathlib.Path(experiment_path)
 
-    runs_dirs = sorted([d for d in exp_path.iterdir() if d.is_dir()])
+    run_dirs = sorted([d for d in exp_path.iterdir() if d.is_dir()])
 
-    if not runs_dirs:
+    if not run_dirs:
         raise Exception(f"No runs found in {exp_path}")
 
     metrics_rows = []
@@ -51,7 +52,7 @@ def load_runs(experiment_path) -> dict:
     cm_totals = {"TN": 0, "FP": 0, "FN": 0, "TP": 0}
     common_fpr = np.linspace(0, 1, 200)
 
-    for run_dir in runs_dirs:
+    for run_dir in run_dirs:
         # -- metrics.json --
         metrics_path = run_dir / "metrics.json"
 
@@ -91,34 +92,34 @@ def load_runs(experiment_path) -> dict:
         else:
             history_dfs.append(pd.read_csv(history_path))
 
-        # CREATE METRICS DATAFRAME
+    # CREATE METRICS DATAFRAME
 
-        metrics_df = pd.DataFrame(metrics_rows)
-        metrics_df.index = [d.name for d in runs_dirs]
-        metrics_df.index.name = "run"
+    metrics_df = pd.DataFrame(metrics_rows)
+    metrics_df.index = [d.name for d in run_dirs]
+    metrics_df.index.name = "run"
 
-        # AGGREGATE TRAINING HISTORY
+    # AGGREGATE TRAINING HISTORY
 
-        history_df = _aggregate_history(history_dfs)
+    history_df = _aggregate_history(history_dfs)
 
-        # CALCULATE ROC AND AUC STATISTICS
+    # CALCULATE ROC AND AUC STATISTICS
 
-        tprs_arr = np.array(tprs)
-        roc_df = pd.DataFrame(
-            {
-                "fpr": common_fpr,
-                "tpr-mean": tprs_arr.mean(axis=0),
-                "tpr-std": tprs_arr.std(axis=0),
-            }
-        )
-        auc = {
-            "mean": float(np.mean(aucs)),
-            "std": float(np.std(aucs)),
+    tprs_arr = np.array(tprs)
+    roc_df = pd.DataFrame(
+        {
+            "fpr": common_fpr,
+            "tpr-mean": tprs_arr.mean(axis=0),
+            "tpr-std": tprs_arr.std(axis=0),
         }
+    )
+    auc = {
+        "mean": float(np.mean(aucs)),
+        "std": float(np.std(aucs)),
+    }
 
-        # CREATE CONFUSION MATRIX DATAFRAME
+    # CREATE CONFUSION MATRIX DATAFRAME
 
-        cm_df = pd.DataFrame([cm_totals])
+    cm_df = pd.DataFrame([cm_totals])
 
     return {
         "name": exp_path.name,
@@ -152,3 +153,23 @@ def _aggregate_history(history_dfs: list[pd.DataFrame]):
     df.index = range(1, len(df) + 1)
     df.index.name = "epoch"
     return df
+
+
+# ================================================
+# GENERATE SUMMARY TABLES
+# ================================================
+
+
+def metrics_table(experiments: list[dict]) -> pd.DataFrame:
+    cols = experiments[0]["metrics"].columns.tolist()
+    rows = []
+
+    for exp in experiments:
+        stacked = exp["metrics"][cols].values
+        row = {"experiment": exp["name"]}
+        for i, col in enumerate(cols):
+            row[f"{col}-mean"] = stacked[:, i].mean()
+            row[f"{col}-std"] = stacked[:, i].std()
+            rows.append(row)
+
+        return pd.DataFrame(rows).set_index("experiment")
