@@ -32,6 +32,9 @@ import numpy as np
 import pandas as pd
 import scipy
 
+# ================================================
+# LOAD AND AGGREGATE EXPERIMENT RESULTS
+# ================================================
 
 def load_runs(experiment_path) -> dict:
     exp_path = pathlib.Path(experiment_path)
@@ -134,5 +137,18 @@ def load_experiments(base_result_dir, experiment_names: list[str]):
 
 
 def _aggregate_history(history_dfs: list[pd.DataFrame]):
+    cols = history_dfs[0].columns.to_list()
+    stacked = np.stack([df[cols].values for df in history_dfs], axis=0)
 
-    return None
+    mean = stacked.mean(axis=0)
+    std = stacked.std(axis=0)
+
+    result = {}
+    for i, col in enumerate(cols):
+        result[f"{col}-mean"] = mean[:, i]
+        result[f"{col}-std"] = std[:, i]
+
+    df = pd.DataFrame(result)
+    df.index = range(1, len(df) + 1)
+    df.index.name = "epoch"
+    return df
