@@ -1,13 +1,16 @@
-# Ignore IDE settings
+# IDE settings
 .vscode
 
-# Inore local shell scripts for automation
+# Local shell scripts for automation
 *.sh
 
-# Ignore raw data
+# Raw data
 data
 
-# Ignore model files and results
+# Python cache
+__pycache__/
+
+# Model files and results
 *.h5
 *.keras
 results
