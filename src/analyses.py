@@ -163,13 +163,12 @@ def _aggregate_history(history_dfs: list[pd.DataFrame]):
 def metrics_table(experiments: list[dict]) -> pd.DataFrame:
     cols = experiments[0]["metrics"].columns.tolist()
     rows = []
-
     for exp in experiments:
         stacked = exp["metrics"][cols].values
         row = {"experiment": exp["name"]}
         for i, col in enumerate(cols):
             row[f"{col}-mean"] = stacked[:, i].mean()
             row[f"{col}-std"] = stacked[:, i].std()
-            rows.append(row)
+        rows.append(row)
 
-        return pd.DataFrame(rows).set_index("experiment")
+    return pd.DataFrame(rows).set_index("experiment")
