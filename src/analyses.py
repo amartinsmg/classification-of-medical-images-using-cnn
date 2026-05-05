@@ -26,119 +26,113 @@ base/
 
 import json
 import pathlib
+import warnings
 
 import numpy as np
 import pandas as pd
 import scipy
 
 
-def load_runs(experiment_path) -> list[dict]:
+def load_runs(experiment_path) -> dict:
     exp_path = pathlib.Path(experiment_path)
 
-    runs_dirs = [d for d in exp_path.iterdir() if d.is_dir()]
+    runs_dirs = sorted([d for d in exp_path.iterdir() if d.is_dir()])
 
     if not runs_dirs:
         raise Exception(f"No runs found in {exp_path}")
 
-    runs = []
+    metrics_rows = []
+    history_dfs = []
+    tprs = []
+    aucs = []
+    cm_totals = {"TN": 0, "FP": 0, "FN": 0, "TP": 0}
+    common_fpr = np.linspace(0, 1, 200)
+
     for run_dir in runs_dirs:
-        run = {}
-        for fname in ["config.json", "metrics.json", "history.csv"]:
-            fpath = run_dir / fname
-            if not fpath.exists():
-                print(f"File not found: {fpath}")
-            elif fname.endswith(".json"):
-                with open(fpath) as f:
-                    run[fname.replace(".json", "")] = json.load(f)
-            elif fname.endswith(".csv"):
-                with open(fpath) as f:
-                    run[fname.replace(".csv", "")] = pd.DataFrame(pd.read_csv(f))
-            else:
-                raise Exception(f"Unknown file type: {fname}")
+        # -- metrics.json --
+        metrics_path = run_dir / "metrics.json"
 
-        runs.append(run)
+        if not metrics_path.exists():
+            raise Exception(f"Metrics file not found: {metrics_path}")
 
-    return runs
+        with open(metrics_path, "r") as f:
+            metrics_data = json.load(f)
+
+        summary = {
+            k: v
+            for k, v in metrics_data["summary"].items()
+            if k != "decision-threshold"
+        }
+        metrics_rows.append(summary)
+
+        cm = metrics_data["details"]["confusion-matrix"]
+
+        for k in cm_totals.keys():
+            cm_totals[k] += cm[k]
+
+        roc = metrics_data["details"]["roc-curve"]
+        fpr = np.array(roc["fpr"])
+        tpr = np.array(roc["tpr"])
+        interp_fn = scipy.interpolate.interp1d(
+            fpr, tpr, kind="linear", bounds_error=False, fill_value=(0.0, 1.0)
+        )
+        tprs.append(interp_fn(common_fpr))
+        aucs.append(float(np.trapezoid(tpr, fpr)))
+
+        # -- history.csv --
+
+        history_path = run_dir / "history.csv"
+
+        if not history_path.exists():
+            warnings.warn(f"History file not found: {history_path}")
+        else:
+            history_dfs.append(pd.read_csv(history_path))
+
+        # CREATE METRICS DATAFRAME
+
+        metrics_df = pd.DataFrame(metrics_rows)
+        metrics_df.index = [d.name for d in runs_dirs]
+        metrics_df.index.name = "run"
+
+        # AGGREGATE TRAINING HISTORY
+
+        history_df = _aggregate_history(history_dfs)
+
+        # CALCULATE ROC AND AUC STATISTICS
+
+        tprs_arr = np.array(tprs)
+        roc_df = pd.DataFrame(
+            {
+                "fpr": common_fpr,
+                "tpr-mean": tprs_arr.mean(axis=0),
+                "tpr-std": tprs_arr.std(axis=0),
+            }
+        )
+        auc = {
+            "mean": float(np.mean(aucs)),
+            "std": float(np.std(aucs)),
+        }
+
+        # CREATE CONFUSION MATRIX DATAFRAME
+
+        cm_df = pd.DataFrame([cm_totals])
+
+    return {
+        "name": exp_path.name,
+        "metrics": metrics_df,
+        "history": history_df,
+        "roc": roc_df,
+        "auc": auc,
+        "confusion-matrix": cm_df,
+    }
 
 
 def load_experiments(base_result_dir, experiment_names: list[str]):
     base = pathlib.Path(base_result_dir)
-    experiments = []
 
-    for exp_name in experiment_names:
-        experiments.append({"name": exp_name, "runs": load_runs(base / exp_name)})
-
-    return experiments
+    return [load_runs(base / exp_name) for exp_name in experiment_names]
 
 
-def aggregate_metrics(experiment: list[dict]):
-    runs = experiment["runs"]
-    keys = runs[0]["metrics"]["summary"].keys()
-    metrics = {}
+def _aggregate_history(history_dfs: list[pd.DataFrame]):
 
-    for key in keys:
-        values = [run["metrics"]["summary"][key] for run in runs]
-        metrics[key] = (
-            {"mean": np.mean(values), "std": np.std(values)}
-            if not key == "decision-threshold"
-            else values[0]
-        )
-
-    return metrics
-
-
-def aggregate_history(experiment: list[dict]):
-    runs = experiment["runs"]
-    keys = runs[0]["history"].keys()
-    result = {}
-
-    for key in keys:
-        matrix = np.array([run["history"][key] for run in runs])
-        result[key] = {
-            "mean": matrix.mean(axis=0).tolist(),
-            "std": matrix.std(axis=0).tolist(),
-        }
-
-    return result
-
-
-def aggregate_cm(experiment: list[dict]):
-    runs = experiment["runs"]
-    keys = ("TN", "FP", "FN", "TP")
-    totals = {k: 0 for k in keys}
-
-    for run in runs:
-        cm = run["metrics"]["details"]["confusion-matrix"]
-        for k in keys:
-            totals[k] += cm[k]
-
-    return totals
-
-
-def aggregate_roc(experiment: list[dict], n_points: int = 200):
-    runs = experiment["runs"]
-    common_fpr = np.linspace(0, 1, n_points)
-    tprs = []
-    aucs = []
-
-    for run in runs:
-        roc = run["metrics"]["details"]["roc-curve"]
-        fpr = np.array(roc["fpr"])
-        tpr = np.array(roc["tpr"])
-
-        inter_fn = scipy.interpolate.interp1d(
-            fpr, tpr, kind="linear", bounds_error=False, fill_value=(0.0, 1.0)
-        )
-        tprs.append(inter_fn(common_fpr))
-
-        aucs.append(float(np.trapz(tpr, fpr)))
-
-    tprs = np.array(tprs)
-
-    return {
-        "fpr": common_fpr.tolist(),
-        "tpr_mean": tprs.mean(axis=0).tolist(),
-        "tpr_std": tprs.std(axis=0).tolist(),
-        "auc_mean": float(np.mean(aucs)),
-        "auc_std": float(np.std(aucs)),
-    }
+    return None
