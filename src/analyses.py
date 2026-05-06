@@ -259,7 +259,7 @@ def plot_training_history(
 
 def plot_roc_curves(
     experiments: list[dict],
-    figsize: tuple = (5, 3.5),
+    figsize: tuple = (5, 5),
 ) -> plt.Figure:
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -290,5 +290,39 @@ def plot_roc_curves(
     ax.legend(fontsize=8)
     ax.grid(alpha=0.3)
 
+    fig.tight_layout()
+    return fig
+
+
+def plot_confusion_matrix(
+    experiments: list[dict],
+    class_names: list[str] = ("Negative", "Positive"),
+    figsize_per_col: tuple = (5, 3.5),
+) -> plt.Figure:
+
+    n = len(experiments)
+    fig, axes = plt.subplots(1, n, figsize=(figsize_per_col[0] * n, figsize_per_col[1]))
+    if n == 1:
+        axes = [axes]
+
+    for col, exp in enumerate(experiments):
+        ax = axes[col]
+        cm_row = exp["confusion-matrix"].iloc[0]
+        cm = np.array([[cm_row["TN"], cm_row["FP"]], [cm_row["FN"], cm_row["TP"]]])
+
+        ax.imshow(cm, interpolation="nearest")
+        ax.set_xticks([0, 1])
+        ax.set_yticks([0, 1])
+        ax.set_xticklabels(class_names, fontsize=9)
+        ax.set_yticklabels(class_names, fontsize=9)
+        ax.set_title(exp["name"], fontsize=9)
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+
+        for r in range(2):
+            for c in range(2):
+                ax.text(c,r,str(cm[r,c]))
+
+    fig.suptitle("Confusion Matrices (sum of runs)", y=1.02)
     fig.tight_layout()
     return fig
