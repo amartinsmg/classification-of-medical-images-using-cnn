@@ -179,6 +179,8 @@ def metrics_table(experiments: list[dict]) -> pd.DataFrame:
 #
 # ================================================
 
+_PALETE = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
 
 def plot_training_history(
     experiments: list[dict],
@@ -195,6 +197,7 @@ def plot_training_history(
     for col, metric in enumerate(metrics):
         ax = axes[col]
         for i, exp in enumerate(experiments):
+            color = _PALETE[i % len(_PALETE)]
             history = exp["history"]
             label = exp["name"]
             epochs = history.index
@@ -202,19 +205,25 @@ def plot_training_history(
             mean_train = history[f"{metric}_mean"].values
             std_train = history[f"{metric}_std"].values
 
-            ax.plot(epochs, mean_train, label=f"{label} - train")
+            ax.plot(epochs, mean_train, color=color, label=f"{label} - train")
 
             val_mean_col = f"val_{metric}_mean"
             val_std_col = f"val_{metric}_std"
             if val and val_mean_col in history.columns:
                 mean_val = history[val_mean_col].values
                 std_val = history[val_std_col].values
-                ax.plot(epochs, mean_val, linestyle="--", label=f"{label} - val")
-            
+                ax.plot(
+                    epochs,
+                    mean_val,
+                    color=color,
+                    linestyle="--",
+                    label=f"{label} - val",
+                )
+
         ax.set_title(metric.upper())
         ax.set_xlabel("Epoch")
         ax.legend(fontsize=8)
         ax.grid(alpha=0.3)
 
     fig.tight_layout()
-    return  fig
+    return fig
