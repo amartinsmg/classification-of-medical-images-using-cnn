@@ -206,6 +206,13 @@ def plot_training_history(
             std_train = history[f"{metric}_std"].values
 
             ax.plot(epochs, mean_train, color=color, label=f"{label} - train")
+            ax.fill_between(
+                epochs,
+                mean_train - std_train,
+                mean_train + std_train,
+                alpha=0.15,
+                color=color,
+            )
 
             val_mean_col = f"val_{metric}_mean"
             val_std_col = f"val_{metric}_std"
@@ -218,6 +225,13 @@ def plot_training_history(
                     color=color,
                     linestyle="--",
                     label=f"{label} - val",
+                )
+                ax.fill_between(
+                    epochs,
+                    mean_val - std_val,
+                    mean_val + std_val,
+                    alpha=0.10,
+                    color=color,
                 )
 
         ax.set_title(metric.upper())
