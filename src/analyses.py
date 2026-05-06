@@ -255,3 +255,40 @@ def plot_training_history(
 
     fig.tight_layout()
     return fig
+
+
+def plot_roc_curves(
+    experiments: list[dict],
+    figsize: tuple = (5, 3.5),
+) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=figsize)
+
+    for i, exp in enumerate(experiments):
+        color = _PALETE[i % len(_PALETE)]
+        roc = exp["roc"]
+        auc = exp["auc"]
+        label = exp["name"]
+
+        ax.plot(
+            roc["fpr"],
+            roc["tpr-mean"],
+            color=color,
+            label=f"{label} (AUC = {auc["mean"]:.3f} ± {auc["std"]:.3f})",
+        )
+        ax.fill_between(
+            roc["fpr"],
+            roc["tpr-mean"] - roc["tpr-std"],
+            roc["tpr-mean"] + roc["tpr-std"],
+            alpha=0.15,
+            color=color,
+        )
+
+    ax.plot([0, 1], [0, 1], "k--", linewidth="0.8", label="Random")
+    ax.set_title("ROC Curve (mean ± std across runs)")
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.legend(fontsize=8)
+    ax.grid(alpha=0.3)
+
+    fig.tight_layout()
+    return fig
