@@ -371,18 +371,6 @@ def full_comparison(
     fig_roc = plot_roc_curves(experiments)
     fig_cm = plot_confusion_matrix(experiments, class_names=class_names)
 
-    # DISPLAY RESULTS
-
-    if show_plot:
-        try:
-            from IPython.display import display
-
-            display(metrics)
-        except ImportError:
-            print(metrics.to_string())
-
-        plt.show()
-
     # SAVE RESULTS
 
     if save_dir is not None:
@@ -394,5 +382,19 @@ def full_comparison(
         fig_cm.savefig(save_dir / "cm.png", bbox_inches="tight", dpi=150)
         metrics.to_csv(save_dir / "metrics.csv")
         print(f"\nResults saved in {save_dir}")
+
+    # DISPLAY RESULTS
+
+    if show_plot:
+        try:
+            from IPython.display import display
+
+            display(metrics)
+        except ImportError:
+            print(metrics.to_string())
+
+        plt.show()
+    else:
+        plt.close("all")
 
     return experiments, metrics, fig_hist, fig_roc, fig_cm
