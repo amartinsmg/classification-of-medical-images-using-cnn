@@ -28,6 +28,7 @@ import json
 import pathlib
 import warnings
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy
@@ -146,8 +147,8 @@ def _aggregate_history(history_dfs: list[pd.DataFrame]):
 
     result = {}
     for i, col in enumerate(cols):
-        result[f"{col}-mean"] = mean[:, i]
-        result[f"{col}-std"] = std[:, i]
+        result[f"{col}_mean"] = mean[:, i]
+        result[f"{col}_std"] = std[:, i]
 
     df = pd.DataFrame(result)
     df.index = range(1, len(df) + 1)
@@ -172,3 +173,48 @@ def metrics_table(experiments: list[dict]) -> pd.DataFrame:
         rows.append(row)
 
     return pd.DataFrame(rows).set_index("experiment")
+
+
+# ================================================
+#
+# ================================================
+
+
+def plot_training_history(
+    experiments: list[dict],
+    metrics: list[str] = ("accuracy", "loss", "AUC"),
+    val: bool = True,
+    figsize_per_col: tuple = (5, 3.5),
+) -> plt.Figure:
+
+    n = len(metrics)
+    fig, axes = plt.subplots(1, n, figsize=(figsize_per_col[0] * n, figsize_per_col[1]))
+    if n == 1:
+        axes = [axes]
+
+    for col, metric in enumerate(metrics):
+        ax = axes[col]
+        for i, exp in enumerate(experiments):
+            history = exp["history"]
+            label = exp["name"]
+            epochs = history.index
+
+            mean_train = history[f"{metric}_mean"].values
+            std_train = history[f"{metric}_std"].values
+
+            ax.plot(epochs, mean_train, label=f"{label} - train")
+
+            val_mean_col = f"val_{metric}_mean"
+            val_std_col = f"val_{metric}_std"
+            if val and val_mean_col in history.columns:
+                mean_val = history[val_mean_col].values
+                std_val = history[val_std_col].values
+                ax.plot(epochs, mean_val, linestyle="--", label=f"{label} - val")
+            
+        ax.set_title(metric.upper())
+        ax.set_xlabel("Epoch")
+        ax.legend(fontsize=8)
+        ax.grid(alpha=0.3)
+
+    fig.tight_layout()
+    return  fig
