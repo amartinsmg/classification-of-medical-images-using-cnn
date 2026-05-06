@@ -34,8 +34,10 @@ import pandas as pd
 import scipy
 
 # ================================================
-# LOAD AND AGGREGATE EXPERIMENT RESULTS
+# LOAD AND AGGREGATE EXPERIMENTS RESULTS
 # ================================================
+
+# LOAD ALL RUNS FOR A SINGLE EXPERIMENT
 
 
 def load_runs(experiment_path) -> dict:
@@ -132,10 +134,16 @@ def load_runs(experiment_path) -> dict:
     }
 
 
+# LOAD MULTIPLE EXPERIMENTS
+
+
 def load_experiments(base_result_dir, experiment_names: list[str]):
     base = pathlib.Path(base_result_dir)
 
     return [load_runs(base / exp_name) for exp_name in experiment_names]
+
+
+# AGGREGATE TRAINING HISTORY FROM MULTIPLE RUNS
 
 
 def _aggregate_history(history_dfs: list[pd.DataFrame]):
@@ -176,10 +184,14 @@ def metrics_table(experiments: list[dict]) -> pd.DataFrame:
 
 
 # ================================================
-#
+# PLOTTING FUNCTIONS
 # ================================================
 
+# COLORS FOR PLOTTING
+
 _PALETE = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+# PLOT TRAINING AND VALIDATION HISTORY
 
 
 def plot_training_history(
