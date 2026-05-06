@@ -304,11 +304,15 @@ def plot_confusion_matrix(
     experiments: list[dict],
     class_names: list[str] = ("Negative", "Positive"),
     cmap: str = "Blues",
-    figsize_per_col: tuple = (5, 3.5),
+    figsize_per_col: tuple = (3.5, 3),
 ) -> plt.Figure:
 
     n = len(experiments)
-    fig, axes = plt.subplots(1, n, figsize=(figsize_per_col[0] * n, figsize_per_col[1]))
+    fig, axes = (
+        plt.subplots(1, n, figsize=(figsize_per_col[0] * n, figsize_per_col[1]))
+        if n < 4
+        else plt.subplots(n, 1, figsize=(figsize_per_col[0], figsize_per_col[1] * n))
+    )
     if n == 1:
         axes = [axes]
 
