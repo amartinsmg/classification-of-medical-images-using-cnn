@@ -355,7 +355,7 @@ def plot_confusion_matrix(
 # ===========================================================================
 
 
-def full_comparasion(
+def full_comparison(
     base_result_dir,
     experiment_names: list[str],
     history_metrics: list[str] = ("accuracy", "loss", "AUC"),
