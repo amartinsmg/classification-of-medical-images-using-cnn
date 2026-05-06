@@ -1,5 +1,5 @@
 outs:
-    - md5: 9ecbd6b8a84c212b0e9cbf712ce1449e.dir
-      size: 84961
+    - md5: 5ada21c4c09ec05c895b34bcc5b5fb0b.dir
+      size: 96810
       path: results
-      nfiles: 21
+      nfiles: 24
