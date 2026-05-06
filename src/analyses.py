@@ -297,6 +297,7 @@ def plot_roc_curves(
 def plot_confusion_matrix(
     experiments: list[dict],
     class_names: list[str] = ("Negative", "Positive"),
+    cmap: str = "Blues",
     figsize_per_col: tuple = (5, 3.5),
 ) -> plt.Figure:
 
@@ -310,7 +311,7 @@ def plot_confusion_matrix(
         cm_row = exp["confusion-matrix"].iloc[0]
         cm = np.array([[cm_row["TN"], cm_row["FP"]], [cm_row["FN"], cm_row["TP"]]])
 
-        ax.imshow(cm, interpolation="nearest")
+        ax.imshow(cm, interpolation="nearest", cmap=cmap)
         ax.set_xticks([0, 1])
         ax.set_yticks([0, 1])
         ax.set_xticklabels(class_names, fontsize=9)
@@ -319,9 +320,18 @@ def plot_confusion_matrix(
         ax.set_xlabel("Predicted")
         ax.set_ylabel("Actual")
 
+        thresh = cm.max() / 2
         for r in range(2):
             for c in range(2):
-                ax.text(c,r,str(cm[r,c]))
+                ax.text(
+                    c,
+                    r,
+                    str(cm[r, c]),
+                    ha="center",
+                    va="center",
+                    fontsize=12,
+                    color="white" if cm[r, c] > thresh else "black",
+                )
 
     fig.suptitle("Confusion Matrices (sum of runs)", y=1.02)
     fig.tight_layout()
