@@ -346,3 +346,51 @@ def plot_confusion_matrix(
     fig.suptitle("Confusion Matrices (sum of runs)", y=1.02)
     fig.tight_layout()
     return fig
+
+
+# ===========================================================================
+# FULL COMPARISON FUNCTION TO LOAD, ANALYZE AND PLOT MULTIPLE EXPERIMENTS
+# ===========================================================================
+
+
+def full_comparasion(
+    base_result_dir,
+    experiment_names: list[str],
+    history_metrics: list[str] = ("accuracy", "loss", "AUC"),
+    class_names: list[str] = ("Negative", "Positive"),
+    show_plot: bool = False,
+    save_dir: pathlib.Path | str | None = None,
+):
+    experiments = load_experiments(base_result_dir, experiment_names)
+
+    metrics = metrics_table(experiments)
+
+    fig_hist = plot_training_history(experiments, metrics=history_metrics)
+    fig_roc = plot_roc_curves(experiments)
+    fig_cm = plot_confusion_matrix(experiments, class_names=class_names)
+
+    # DISPLAY RESULTS
+
+    if show_plot:
+        try:
+            from IPython.display import display
+
+            display(metrics)
+        except ImportError:
+            print(metrics.to_string())
+
+        plt.show()
+
+    # SAVE RESULTS
+
+    if save_dir is not None:
+        save_dir = pathlib.Path(save_dir)
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        fig_hist.savefig(save_dir / "history.png", bbox_inches="tight", dpi=150)
+        fig_roc.savefig(save_dir / "roc.png", bbox_inches="tight", dpi=150)
+        fig_cm.savefig(save_dir / "cm.png", bbox_inches="tight", dpi=150)
+        metrics.to_csv(save_dir / "metrics.csv")
+        print(f"\nResults saved in {save_dir}")
+
+    return experiments, metrics, fig_hist, fig_roc, fig_cm
