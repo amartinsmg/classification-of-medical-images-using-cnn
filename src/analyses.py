@@ -192,7 +192,7 @@ def metrics_table(experiments: list[dict]) -> pd.DataFrame:
 
 _PALETE = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
-# PLOT TRAINING AND VALIDATION HISTORY
+# PLOT TRAINING AND VALIDATION METRICS WITH SHADING FOR STD ACROSS RUNS
 
 
 def plot_training_history(
@@ -257,6 +257,9 @@ def plot_training_history(
     return fig
 
 
+# PLOT ROC CURVES WITH SHADING FOR STD ACROSS RUNS
+
+
 def plot_roc_curves(
     experiments: list[dict],
     figsize: tuple = (5, 5),
@@ -292,6 +295,9 @@ def plot_roc_curves(
 
     fig.tight_layout()
     return fig
+
+
+# PLOT CONFUSION MATRICES WITH SHADING FOR STD ACROSS RUNS
 
 
 def plot_confusion_matrix(
