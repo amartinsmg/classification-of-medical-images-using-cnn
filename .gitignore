@@ -10,7 +10,8 @@ data
 # Python cache
 __pycache__/
 
-# Model files and results
+# Model files, results and comparisons
 *.h5
 *.keras
 results
+comparisons
