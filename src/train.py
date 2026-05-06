@@ -4,7 +4,7 @@
 """
 TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
-Example task: Classify chest X-ray images as normal or pneumonia.
+train.py: Training pipeline for CNN models using transfer learning on radiological images.
 
 Expected directory structure:
 

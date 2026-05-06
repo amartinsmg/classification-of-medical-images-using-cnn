@@ -4,6 +4,8 @@
 """
 TRANSFERLEARNING FOR RADIOLOGICAL IMAGE CLASSIFICATION
 
+analyses.py: Analysis and visualization tools for summarizing results from multiple runs and experiments.
+
 Expected directory structure:
 
 base/
