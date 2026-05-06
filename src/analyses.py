@@ -29,6 +29,7 @@ import pathlib
 import warnings
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import scipy
@@ -248,6 +249,7 @@ def plot_training_history(
 
         ax.set_title(metric.upper())
         ax.set_xlabel("Epoch")
+        ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
         ax.legend(fontsize=8)
         ax.grid(alpha=0.3)
 
