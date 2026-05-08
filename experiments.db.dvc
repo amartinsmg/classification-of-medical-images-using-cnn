@@ -1,4 +1,4 @@
 outs:
-    - md5: 75d83d3864bae0945bc24416d4095650
-      size: 24576
+    - md5: 52d25c56589c98f2d761980e037cfbb6
+      size: 32768
       path: experiments.db
