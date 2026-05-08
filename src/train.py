@@ -200,12 +200,12 @@ def _train_model(
     train_data,
     val_data,
     epochs: int = 10,
-    class_weights: bool = False,
+    use_class_weights: bool = False,
 ):
 
     history = None
 
-    if not class_weights:
+    if not use_class_weights:
         history = model.fit(train_data, validation_data=val_data, epochs=epochs)
     else:
         y_train = np.concatenate([y for _, y in train_data], axis=0)
@@ -285,7 +285,6 @@ def train_pipeline(
     config_dict = {
         "base-model": "",
         "weights": "imagenet",
-        "optimizer": "adam",
         "preprocessing": [normalization],
         "image-size": image_size,
         "batch-size": batch_size,
@@ -332,7 +331,7 @@ def train_pipeline(
     model = _build_model(base_model_arch=base_model, input_shape=input_shape)
 
     model, history = _train_model(
-        model, train_data, val_data, epochs=epochs, class_weights=class_weights
+        model, train_data, val_data, epochs=epochs, use_class_weights=class_weights
     )
 
     # SAVE MODEL AND RESULTS
