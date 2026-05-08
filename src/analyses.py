@@ -421,10 +421,13 @@ def save_separeted_archs(
 ) -> None:
     for arch in archs:
         archs_exp = [exp for exp in experiments if exp["name"].startswith(arch)]
+        save_dir_arch = save_dir / arch
+        save_dir_arch.mkdir(parents=True, exist_ok=True)
+
         fig_hist = plot_training_history(archs_exp, metrics=history_metrics)
-        fig_hist.savefig(save_dir / arch / "history.png", bbox_inches="tight", dpi=300)
+        fig_hist.savefig(save_dir_arch / "history.png", bbox_inches="tight", dpi=300)
         fig_roc = plot_roc_curves(archs_exp)
-        fig_roc.savefig(save_dir / arch / "roc.png", bbox_inches="tight", dpi=300)
+        fig_roc.savefig(save_dir_arch / "roc.png", bbox_inches="tight", dpi=300)
         fig_cm = plot_confusion_matrix(archs_exp, class_names=class_names)
-        fig_cm.savefig(save_dir / arch / "cm.png", bbox_inches="tight", dpi=300)
+        fig_cm.savefig(save_dir_arch / "cm.png", bbox_inches="tight", dpi=300)
         plt.close("all")
