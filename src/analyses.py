@@ -302,7 +302,7 @@ def plot_roc_curves(
 # PLOT CONFUSION MATRICES WITH SHADING FOR STD ACROSS RUNS
 
 
-def plot_confusion_matrix(
+def plot_confusion_matrices(
     experiments: list[dict],
     class_names: list[str] = ("Negative", "Positive"),
     cmap: str = "Blues",
@@ -371,7 +371,7 @@ def full_comparison(
 
     fig_hist = plot_training_history(experiments, metrics=history_metrics)
     fig_roc = plot_roc_curves(experiments)
-    fig_cm = plot_confusion_matrix(experiments, class_names=class_names)
+    fig_cm = plot_confusion_matrices(experiments, class_names=class_names)
 
     # SAVE RESULTS
 
@@ -412,6 +412,9 @@ def full_comparison(
     return experiments, metrics, fig_hist, fig_roc, fig_cm
 
 
+# SAVE SEPARATED PLOTS FOR EACH ARCHITECTURE (ASSUMING EXPERIMENT NAMES START WITH ARCHITECTURE NAME)
+
+
 def save_separeted_archs(
     experiments: list[dict],
     save_dir: pathlib.Path,
@@ -428,6 +431,6 @@ def save_separeted_archs(
         fig_hist.savefig(save_dir_arch / "history.png", bbox_inches="tight", dpi=300)
         fig_roc = plot_roc_curves(archs_exp)
         fig_roc.savefig(save_dir_arch / "roc.png", bbox_inches="tight", dpi=300)
-        fig_cm = plot_confusion_matrix(archs_exp, class_names=class_names)
+        fig_cm = plot_confusion_matrices(archs_exp, class_names=class_names)
         fig_cm.savefig(save_dir_arch / "cm.png", bbox_inches="tight", dpi=300)
         plt.close("all")
