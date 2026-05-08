@@ -208,11 +208,11 @@ def _train_model(
     if not use_class_weights:
         history = model.fit(train_data, validation_data=val_data, epochs=epochs)
     else:
-        y_train = np.concatenate([y for _, y in train_data], axis=0)
+        y_train = np.concatenate([y for _, y in train_data], axis=0).flatten().astype(int)
 
         classes = np.unique(y_train)
         weights = sk.utils.class_weight.compute_class_weight(
-            class_weights="balanced",
+            class_weight="balanced",
             classes=classes,
             y=y_train,
         )
