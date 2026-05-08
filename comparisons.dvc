@@ -1,5 +1,5 @@
 outs:
-    - md5: 38bbef006e52c0b63217492db2afd548.dir
-      size: 4445649
+    - md5: 0907c1a77d43bb05bad896ee998baf58.dir
+      size: 5855110
       path: comparisons
-      nfiles: 21
+      nfiles: 25
