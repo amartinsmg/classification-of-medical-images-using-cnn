@@ -13,6 +13,7 @@ __pycache__/
 *.tmp
 
 # Model files, results and comparisons
+models
 *.h5
 *.keras
 results
