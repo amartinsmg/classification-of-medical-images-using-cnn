@@ -42,6 +42,6 @@ def optimal_threshold(experiment_path: str | pathlib.Path):
     fpr, tpr, thresholds = sk.metrics.roc_curve(combined["y_true"], combined["y_pred"])
 
     youden_j = np.argmax(tpr - fpr)
-    threshold = thresholds[youden_j]
+    threshold = float(thresholds[youden_j])
 
     return threshold
