@@ -17,4 +17,4 @@ __pycache__/
 *.tmp
 
 # Model weights (redundant if .keras is tracked)
-*.h5
+**/*.h5
