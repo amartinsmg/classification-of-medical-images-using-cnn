@@ -7,8 +7,10 @@
 # Raw data
 data
 
-# Python cache
+# Temporary and system files
 __pycache__/
+*.pyc
+*.tmp
 
 # Model files, results and comparisons
 *.h5
