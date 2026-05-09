@@ -1,5 +1,4 @@
 outs:
-- md5: 1d3c068b1993feab967dfe2a675e7b47
-  size: 45056
-  path: experiments.db
-  hash: md5
+    - md5: 1d3c068b1993feab967dfe2a675e7b47
+      size: 45056
+      path: experiments.db
