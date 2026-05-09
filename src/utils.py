@@ -39,7 +39,7 @@ def optimal_threshold(experiment_path: str | pathlib.Path):
     dfs = [pd.read_csv(run_dir / "predictions.csv") for run_dir in run_dirs]
     combined = pd.concat(dfs)
 
-    fpr, tpr, thresholds = sk.metrics.roc_curve(combined["y_true"], combined["y_pred"])
+    fpr, tpr, thresholds = sk.metrics.roc_curve(combined["y_true"], combined["y_scores"])
 
     youden_j = np.argmax(tpr - fpr)
     threshold = float(thresholds[youden_j])
