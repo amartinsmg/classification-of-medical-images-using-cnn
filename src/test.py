@@ -28,6 +28,7 @@ import typing
 
 import keras
 import numpy as np
+import pandas as pd
 import sklearn as sk
 import tensorflow as tf
 
@@ -36,14 +37,22 @@ import tensorflow as tf
 # ======================================
 
 
-def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+def _configure_paths(
+    base_dir: str | pathlib.Path,
+    experiment_name: str = "",
+    run_id: int = 1,
+    versioning_models: bool = False,
+):
     base_path = pathlib.Path(base_dir).resolve()
 
     if len(experiment_name) == 0:
         MODELS_DIR = base_path / "models"
         RESULT_DIR = base_path / "results"
     else:
-        MODELS_DIR = base_path / "models" / f"run{run_id:02d}"
+        if versioning_models:
+            MODELS_DIR = base_path / "models" / experiment_name / f"run{run_id:02d}"
+        else:
+            MODELS_DIR = base_path / "models" / f"run{run_id:02d}"
         RESULT_DIR = base_path / "results" / experiment_name / f"run{run_id:02d}"
 
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
@@ -54,7 +63,9 @@ def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 
     metrics_path = RESULT_DIR / "metrics.json"
 
-    return test_dir, model_path, metrics_path
+    predictions_path = RESULT_DIR / "predictions.csv"
+
+    return test_dir, model_path, metrics_path, predictions_path
 
 
 # ======================================
@@ -63,7 +74,7 @@ def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 
 
 def _load_test_data(
-    test_dir,
+    test_dir: str | pathlib.Path,
     normalization: str = "rescaling",
     base_model: str = "resnet",
     image_size: typing.Tuple[int, int] = (224, 224),
@@ -148,12 +159,12 @@ def _calculate_metrics(
 
 
 # ======================================
-# METRICS REPORTING
+# METRICS SAVING AND REPORTING
 # ======================================
 
 
-def _save_and_report(
-    metrics_path,
+def _save_metrics_and_report(
+    metrics_path: str | pathlib.Path,
     summary: dict,
     details: dict,
     experiment_name: str = "",
@@ -184,12 +195,26 @@ def _save_and_report(
 
 
 # ======================================
+# PREDICTIONS SAVING
+# ======================================
+
+
+def save_predictions(
+    predictions_path: str | pathlib.Path,
+    y_true: np.ndarray,
+    y_scores: np.ndarray,
+):
+    df = pd.DataFrame({"y_true": y_true, "y_scores": y_scores})
+    df.to_csv(predictions_path, index=False)
+
+
+# ======================================
 # MODEL TESTING AND EVALUATION
 # ======================================
 
 
 def test_pipeline(
-    base_dir,
+    base_dir: str | pathlib.Path,
     experiment_name: str = "",
     run_id: int = 1,
     normalization: str = "rescaling",
@@ -197,12 +222,17 @@ def test_pipeline(
     image_size: typing.Tuple[int, int] = (224, 224),
     batch_size: int = 32,
     threshold: float = 0.5,
+    versioning_models: bool = False,
+    save_predicitions: bool = False,
 ):
 
     # PATH CONFIGURATION AND LOADING OF TEST DATA AND MODEL
 
-    test_dir, model_path, metrics_path = _configure_paths(
-        base_dir, experiment_name=experiment_name, run_id=run_id
+    test_dir, model_path, metrics_path, predictions_path = _configure_paths(
+        base_dir,
+        experiment_name=experiment_name,
+        run_id=run_id,
+        versioning_models=versioning_models,
     )
 
     test_data = _load_test_data(
@@ -217,21 +247,32 @@ def test_pipeline(
 
     # EXTRACTION OF TRUE LABELS AND PREDICTING SCORES
 
-    y_true = np.concatenate([y for x, y in test_data], axis=0).flatten()
+    y_true = np.concatenate([y for _, y in test_data], axis=0).flatten()
 
     y_scores = model.predict(test_data).flatten()
 
-    # CALCULATE AND METRICS
+    # SAVE PREDICTIONS TO CSV OR CALCULATE METRICS AND SAVE REPORT
 
-    summary, details = _calculate_metrics(y_true, y_scores, threshold=threshold)
+    if save_predicitions:
+        save_predictions(predictions_path, y_true, y_scores)
 
-    _save_and_report(
-        metrics_path, summary, details, experiment_name=experiment_name, run_id=run_id
-    )
+        print("Test completed. Predictions saved.")
 
-    print("Test completed. Metrics saved.")
+        return None
+    else:
+        summary, details = _calculate_metrics(y_true, y_scores, threshold=threshold)
 
-    return summary
+        _save_metrics_and_report(
+            metrics_path,
+            summary,
+            details,
+            experiment_name=experiment_name,
+            run_id=run_id,
+        )
+
+        print("Test completed. Metrics saved.")
+
+        return summary
 
 
 # ======================================
