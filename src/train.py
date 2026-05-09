@@ -32,20 +32,27 @@ import pandas as pd
 import sklearn as sk
 import tensorflow as tf
 
-
 # ======================================
 # PATH CONFIGURATION
 # ======================================
 
 
-def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
+def _configure_paths(
+    base_dir: str | pathlib.Path,
+    experiment_name: str = "",
+    run_id: int = 1,
+    versioning_models: bool = False,
+):
     base_path = pathlib.Path(base_dir).resolve()
 
     if len(experiment_name) == 0:
         MODELS_DIR = base_path / "models"
         RESULT_DIR = base_path / "results"
     else:
-        MODELS_DIR = base_path / "models" / f"run{run_id:02d}"
+        if versioning_models:
+            MODELS_DIR = base_path / "models" / experiment_name / f"run{run_id:02d}"
+        else:
+            MODELS_DIR = base_path / "models" / f"run{run_id:02d}"
         RESULT_DIR = base_path / "results" / experiment_name / f"run{run_id:02d}"
 
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
@@ -69,8 +76,8 @@ def _configure_paths(base_dir: str, experiment_name: str = "", run_id: int = 1):
 
 
 def _load_datasets(
-    train_dir,
-    val_dir,
+    train_dir: str | pathlib.Path,
+    val_dir: str | pathlib.Path,
     normalization: str = "rescaling",
     base_model: str = "resnet",
     data_aug: bool = True,
@@ -208,7 +215,9 @@ def _train_model(
     if not use_class_weights:
         history = model.fit(train_data, validation_data=val_data, epochs=epochs)
     else:
-        y_train = np.concatenate([y for _, y in train_data], axis=0).flatten().astype(int)
+        y_train = (
+            np.concatenate([y for _, y in train_data], axis=0).flatten().astype(int)
+        )
 
         classes = np.unique(y_train)
         weights = sk.utils.class_weight.compute_class_weight(
@@ -237,10 +246,10 @@ def _save_results(
     model: keras.models.Model,
     history: keras.callbacks.History,
     config_dict: dict,
-    model_path,
-    model_weights_path,
-    history_path,
-    config_path,
+    model_path: str | pathlib.Path,
+    model_weights_path: str | pathlib.Path,
+    history_path: str | pathlib.Path,
+    config_path: str | pathlib.Path,
 ):
     model.save(model_path)
 
@@ -259,7 +268,7 @@ def _save_results(
 
 
 def train_pipeline(
-    base_dir: str,
+    base_dir: str | pathlib.Path,
     experiment_name: str = "",
     run_id: int = 1,
     base_model: str = "resnet",
@@ -271,6 +280,7 @@ def train_pipeline(
     learning_rate: float = 0.001,
     epochs: int = 10,
     seed: int = 42,
+    versioning_models: bool = False,
 ):
     # SET SEEDS FOR REPRODUCIBILITY
 
@@ -310,7 +320,12 @@ def train_pipeline(
     # CONFIGURE PATHS AND LOAD DATASETS
 
     train_dir, val_dir, model_path, model_weights_path, history_path, config_path = (
-        _configure_paths(base_dir, experiment_name=experiment_name, run_id=run_id)
+        _configure_paths(
+            base_dir,
+            experiment_name=experiment_name,
+            run_id=run_id,
+            versioning_models=versioning_models,
+        )
     )
 
     train_data, val_data = _load_datasets(
