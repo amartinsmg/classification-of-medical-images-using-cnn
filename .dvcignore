@@ -1,3 +1,20 @@
-# Add patterns of files dvc should ignore, which could improve
-# the performance. Learn more at
-# https://dvc.org/doc/user-guide/dvcignore
+# IDE settings
+.vscode
+
+# Source code and notebooks (tracked by git, not dvc)
+src
+notebooks
+schema
+requirements.txt
+README.md
+
+# Local shell scripts for automation
+*.sh
+
+# Temporary and system files
+__pycache__/
+*.pyc
+*.tmp
+
+# Model weights (redundant if .keras is tracked)
+*.h5
