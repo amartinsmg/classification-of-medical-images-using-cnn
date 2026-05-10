@@ -433,4 +433,6 @@ def save_separeted_archs(
         fig_roc.savefig(save_dir_arch / "roc.png", bbox_inches="tight", dpi=300)
         fig_cm = plot_confusion_matrices(archs_exp, class_names=class_names)
         fig_cm.savefig(save_dir_arch / "cm.png", bbox_inches="tight", dpi=300)
-        plt.close("all")
+        plt.close(fig_hist)
+        plt.close(fig_roc)
+        plt.close(fig_cm)
