@@ -43,7 +43,7 @@ import scipy
 # LOAD ALL RUNS FOR A SINGLE EXPERIMENT
 
 
-def load_runs(experiment_path) -> dict:
+def load_runs(experiment_path: str | pathlib.Path):
     exp_path = pathlib.Path(experiment_path)
 
     run_dirs = sorted([d for d in exp_path.iterdir() if d.is_dir()])
@@ -140,7 +140,7 @@ def load_runs(experiment_path) -> dict:
 # LOAD MULTIPLE EXPERIMENTS
 
 
-def load_experiments(base_result_dir, experiment_names: list[str]):
+def load_experiments(base_result_dir: str | pathlib.Path, experiment_names: list[str]):
     base = pathlib.Path(base_result_dir)
 
     return [load_runs(base / exp_name) for exp_name in experiment_names]
@@ -172,7 +172,7 @@ def _aggregate_history(history_dfs: list[pd.DataFrame]):
 # ================================================
 
 
-def metrics_table(experiments: list[dict]) -> pd.DataFrame:
+def metrics_table(experiments: list[dict]):
     cols = experiments[0]["metrics"].columns.tolist()
     rows = []
     for exp in experiments:
@@ -202,7 +202,7 @@ def plot_training_history(
     metrics: list[str] = ("accuracy", "loss", "AUC"),
     val: bool = True,
     figsize_per_col: tuple = (5, 3.5),
-) -> plt.Figure:
+):
 
     n = len(metrics)
     fig, axes = plt.subplots(1, n, figsize=(figsize_per_col[0] * n, figsize_per_col[1]))
@@ -265,7 +265,7 @@ def plot_training_history(
 def plot_roc_curves(
     experiments: list[dict],
     figsize: tuple = (5, 5),
-) -> plt.Figure:
+):
     fig, ax = plt.subplots(figsize=figsize)
 
     for i, exp in enumerate(experiments):
@@ -307,7 +307,7 @@ def plot_confusion_matrices(
     class_names: list[str] = ("Negative", "Positive"),
     cmap: str = "Blues",
     figsize_per_col: tuple = (3.5, 3),
-) -> plt.Figure:
+):
 
     n = len(experiments)
     fig, axes = (
@@ -356,7 +356,7 @@ def plot_confusion_matrices(
 
 
 def full_comparison(
-    base_result_dir,
+    base_result_dir: str | pathlib.Path,
     experiment_names: list[str],
     history_metrics: list[str] = ("accuracy", "loss", "AUC"),
     class_names: list[str] = ("Negative", "Positive"),
@@ -421,7 +421,7 @@ def save_separeted_archs(
     archs: list[str] = ["resnet", "densenet", "efficientnet"],
     history_metrics: list[str] = ("accuracy", "loss", "AUC"),
     class_names: list[str] = ("Negative", "Positive"),
-) -> None:
+):
     for arch in archs:
         archs_exp = [exp for exp in experiments if exp["name"].startswith(arch)]
         save_dir_arch = save_dir / arch
