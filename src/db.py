@@ -55,7 +55,7 @@ def get_engine(db_url: str, schema_dir="schema"):
     return engine
 
 
-def _parse_params(params: dict) -> dict:
+def _parse_params(params: dict):
     p = {k.replace("-", "_"): v for k, v in params.items()}
 
     optimizer = p.pop("optimizer", {})
@@ -73,7 +73,7 @@ def _parse_params(params: dict) -> dict:
     return p
 
 
-def _parse_metrics(metrics: dict) -> dict:
+def _parse_metrics(metrics: dict):
     m = {k.replace("-", "_"): v for k, v in metrics.items()}
 
     return m
