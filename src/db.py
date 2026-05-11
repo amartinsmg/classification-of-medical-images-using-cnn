@@ -32,9 +32,15 @@ import warnings
 import pandas as pd
 import sqlalchemy
 
+# ================================================
+# CREATES DATABASE ENGINE
+# ================================================
+
 
 def get_engine(db_url: str, schema_dir="schema"):
     engine = sqlalchemy.create_engine(db_url)
+
+    # READ SCHEMA SQL FROM FILE
 
     schema_path = pathlib.Path(schema_dir) / "schema.sql"
     if not schema_path.exists():
@@ -42,17 +48,28 @@ def get_engine(db_url: str, schema_dir="schema"):
 
     schema_sql = schema_path.read_text(encoding="utf-8")
 
+    # ENABLE FOREIGN KEY CONSTRAINTS FOR SQLITE
+
     if db_url.startswith("sqlite"):
 
         @sqlalchemy.event.listens_for(engine, "connect")
         def set_sqlite_pragma(conn, _):
             conn.execute("PRAGMA foreign_keys=ON")
 
+    # USE SCHEMA TO CREATE TABLES IF THEY DON'T EXIST
+
     with engine.begin() as conn:
         db_api = conn.connection
         db_api.executescript(schema_sql)
 
     return engine
+
+
+# ================================================
+# FUNCTIONS TO INSERT RUNS INTO THE DATABASE
+# ================================================
+
+# PARSING FUNCTIONS TO TRANSFORM CONFIG AND METRICS INTO FLAT STRUCTURES SUITABLE FOR DB INSERTION
 
 
 def _parse_params(params: dict):
@@ -77,6 +94,9 @@ def _parse_metrics(metrics: dict):
     m = {k.replace("-", "_"): v for k, v in metrics.items()}
 
     return m
+
+
+# MAIN FUNCTION TO INSERT A RUN INTO THE DATABASE
 
 
 def insert_run(engine, experiment: str, run_name: str, config: dict, metrics: dict):
