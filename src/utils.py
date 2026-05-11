@@ -27,6 +27,10 @@ import numpy as np
 import pandas as pd
 import sklearn as sk
 
+# ================================================
+# OPTIMAL THRESHOLD CALCULATION USING YOUDEN'S J STATISTIC
+# ================================================
+
 
 def optimal_threshold(experiment_path: str | pathlib.Path):
     exp_path = pathlib.Path(experiment_path)
@@ -39,7 +43,9 @@ def optimal_threshold(experiment_path: str | pathlib.Path):
     dfs = [pd.read_csv(run_dir / "predictions.csv") for run_dir in run_dirs]
     combined = pd.concat(dfs)
 
-    fpr, tpr, thresholds = sk.metrics.roc_curve(combined["y_true"], combined["y_scores"])
+    fpr, tpr, thresholds = sk.metrics.roc_curve(
+        combined["y_true"], combined["y_scores"]
+    )
 
     youden_j = np.argmax(tpr - fpr)
     threshold = float(thresholds[youden_j])
