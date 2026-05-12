@@ -223,7 +223,7 @@ def test_pipeline(
     batch_size: int = 32,
     threshold: float = 0.5,
     versioning_models: bool = False,
-    save_predicitions: bool = False,
+    save_predictions: bool = False,
 ):
 
     # PATH CONFIGURATION AND LOADING OF TEST DATA AND MODEL
@@ -253,7 +253,7 @@ def test_pipeline(
 
     # SAVE PREDICTIONS TO CSV OR CALCULATE METRICS AND SAVE REPORT
 
-    if save_predicitions:
+    if save_predictions:
         save_predictions(predictions_path, y_true, y_scores)
 
         print("Test completed. Predictions saved.")
