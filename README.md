@@ -14,6 +14,8 @@
 
 ---
 
+## Metodologia de pesquisa
+
 Para este trabalho, escolhidas as seguintes arquiteturas:
 
 - `"resnet"`: ResNet50
