@@ -11,6 +11,7 @@
 ![SciPy](https://img.shields.io/badge/scipy-8CAAE6.svg?&style=for-the-badge&logo=scipy&logoColor=white)
 ![Pandas](https://img.shields.io/badge/pandas-150458.svg?&style=for-the-badge&logo=pandas&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/matplotlib-000000.svg?&style=for-the-badge&logo=matplotlib&logoColor=white)
+![DVC](https://img.shields.io/badge/dvc-13ADC7.svg?&style=for-the-badge&logo=dvc&logoColor=white)
 
 ---
 
