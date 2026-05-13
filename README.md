@@ -144,7 +144,13 @@ dvc pull results comparisons
 
 ## Resultados
 
-Os resultados completos de todos os experimentos estão disponíveis no [DagsHub](https://dagshub.com/amartinsmg/classification-of-medical-images-using-cnn), incluindo métricas por run, históricos de treinamento e gráficos comparativos.
+Os resultados completos de todos os experimentos estão disponíveis em dois repositórios:
+
+- **DagsHub** — métricas por run, históricos de treinamento, gráficos comparativos e modelos finais (versionados com DVC):  
+  https://dagshub.com/amartinsmg/classification-of-medical-images-using-cnn
+
+- **Zenodo** — snapshot arquivado do dataset de resultados com DOI permanente para citação:  
+  https://doi.org/10.5281/zenodo.20149272
 
 ---
 
