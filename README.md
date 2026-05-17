@@ -69,9 +69,9 @@ Foram escolhidas as seguintes versões de arquiteturas amplamente consolidadas n
 
 | Identificador  | Arquitetura    | Parâmetros (base) | Tamanho do modelo |
 | -------------- | -------------- | ----------------- | ----------------- |
-| `resnet`       | ResNet50       | ~25M              | ~90MB             |
-| `densenet`     | DenseNet121    | ~8M               | ~30MB             |
-| `efficientnet` | EfficientNetB0 | ~5M               | ~20MB             |
+| `resnet`       | ResNet50       | ~25M              | ~96MB             |
+| `densenet`     | DenseNet121    | ~8M               | ~31MB             |
+| `efficientnet` | EfficientNetB0 | ~5M               | ~19MB             |
 
 As três versões foram escolhidas por terem complexidade computacional comparável, resolução de entrada padrão de 224×224 pixels e por utilizarem _Global Average Pooling_ (GAP) antes da camada de classificação final.
 
